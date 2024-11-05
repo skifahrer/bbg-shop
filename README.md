@@ -3,7 +3,7 @@
 ## Description
 
 
-## Development of the app
+## Creation of the app
 
 1. Install Symfony CLI:
 
@@ -24,3 +24,5 @@
 ```
 
 4. Create DB structure.
+
+User can has multiple charts and multiple orders. Cart can have only one user, but can contain multiple products with quantiites. Order is same as chart, on top of that contains final price and shipping and invoice address.

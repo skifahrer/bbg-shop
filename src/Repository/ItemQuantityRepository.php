@@ -2,17 +2,15 @@
 
 namespace App\Repository;
 
-use App\Entity\Cart;
+use App\Entity\ItemQuantity;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
-use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: CartRepository::class)]
-class CartRepository extends ServiceEntityRepository
+class ItemQuantityRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, Cart::class);
+        parent::__construct($registry, ItemQuantity::class);
     }
 
     // Add custom methods here
