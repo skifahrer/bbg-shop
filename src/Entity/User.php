@@ -43,9 +43,15 @@ class User implements UserInterface
         return $this->roles;
     }
 
-    public function getPassword(): string
+    public function setPassword(string $password): self
     {
-        return $this->password;
+        $this->password = $this->hashPassword($password);
+        return $this;
+    }
+
+    private function hashPassword(string $password): string
+    {
+        return password_hash($password, PASSWORD_BCRYPT);
     }
 
     public function getSalt(): ?string
