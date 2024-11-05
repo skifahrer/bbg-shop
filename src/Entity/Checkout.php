@@ -2,16 +2,19 @@
 
 namespace App\Entity;
 
-use Doctrine\ORM\Mapping as ORM;
 use App\Enum\PaymentType;
+use Doctrine\ORM\Mapping as ORM;
+use Ramsey\Uuid\Uuid;
+use Ramsey\Uuid\UuidInterface;
 
 #[ORM\Entity(repositoryClass: "App\Repository\CheckoutRepository")]
 class Checkout
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column(type: 'integer')]
-    private $id;
+    #[ORM\Column(type: 'uuid', unique: true)]
+    #[ORM\GeneratedValue(strategy: 'CUSTOM')]
+    #[ORM\CustomIdGenerator(class: 'Ramsey\Uuid\Doctrine\UuidGenerator')]
+    private UuidInterface $id;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(nullable: false)]
@@ -38,15 +41,4 @@ class Checkout
     private $paymentType;
 
     // Getters and setters...
-
-    public function getPaymentType(): PaymentType
-    {
-        return $this->paymentType;
-    }
-
-    public function setPaymentType(PaymentType $paymentType): self
-    {
-        $this->paymentType = $paymentType;
-        return $this;
-    }
 }

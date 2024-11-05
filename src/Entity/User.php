@@ -3,24 +3,26 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use Ramsey\Uuid\Uuid;
+use Ramsey\Uuid\UuidInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
 #[ORM\Entity(repositoryClass: "App\Repository\UserRepository")]
-
 class User implements UserInterface
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue]
-    #[ORM\Column(type: "integer")]
-    private $id;
+    #[ORM\Column(type: 'uuid', unique: true)]
+    #[ORM\GeneratedValue(strategy: 'CUSTOM')]
+    #[ORM\CustomIdGenerator(class: 'Ramsey\Uuid\Doctrine\UuidGenerator')]
+    private UuidInterface $id;
 
-    #[ORM\Column(type: "string", length: 180, unique: true)]
+    #[ORM\Column(type: 'string', length: 180, unique: true)]
     private $email;
 
-    #[ORM\Column(type: "json")]
+    #[ORM\Column(type: 'json')]
     private $roles = [];
 
-    #[ORM\Column(type: "string")]
+    #[ORM\Column(type: 'string')]
     private $password;
 
     #[ORM\OneToMany(targetEntity: Cart::class, mappedBy: 'user')]
@@ -32,24 +34,36 @@ class User implements UserInterface
     #[ORM\OneToMany(targetEntity: Checkout::class, mappedBy: 'user')]
     private $checkouts;
 
-    #[ORM\Column(type: "string", length: 255, nullable: true)]
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private $shippingAddress;
 
     // Getters and setters...
     public function getRoles(): array
     {
-        // TODO: Implement getRoles() method.
         return $this->roles;
+    }
+
+    public function getPassword(): string
+    {
+        return $this->password;
+    }
+
+    public function getSalt(): ?string
+    {
+        return null;
+    }
+
+    public function getUsername(): string
+    {
+        return $this->email;
     }
 
     public function eraseCredentials(): void
     {
-        // TODO: Implement eraseCredentials() method.
     }
 
     public function getUserIdentifier(): string
     {
-        // TODO: Implement getUserIdentifier() method.
         return $this->id;
     }
 
