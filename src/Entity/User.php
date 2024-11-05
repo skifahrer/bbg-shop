@@ -29,6 +29,9 @@ class User implements UserInterface
     #[ORM\OneToMany(targetEntity: Order::class, mappedBy: 'user')]
     private $orders;
 
+    #[ORM\OneToMany(targetEntity: Checkout::class, mappedBy: 'user')]
+    private $checkouts;
+
     #[ORM\Column(type: "string", length: 255, nullable: true)]
     private $shippingAddress;
 

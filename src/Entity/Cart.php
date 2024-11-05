@@ -19,5 +19,8 @@ class Cart
     #[ORM\OneToMany(targetEntity: ItemQuantity::class, mappedBy: 'cart')]
     private $itemQuantities;
 
+    #[ORM\OneToOne(targetEntity: Checkout::class, mappedBy: 'cart')]
+    private $checkout;
+
     // Getters and setters...
 }

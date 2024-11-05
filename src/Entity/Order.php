@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use App\Enum\OrderStatus;
 
 #[ORM\Entity(repositoryClass: "App\Repository\OrderRepository")]
 class Order
@@ -31,5 +32,10 @@ class Order
     #[ORM\Column(type: 'string', length: 255)]
     private $invoiceAddress;
 
-    // Getters and setters...
+    #[ORM\Column(type: 'string', enumType: OrderStatus::class)]
+    private $status;
+
+    #[ORM\OneToOne(targetEntity: Checkout::class, mappedBy: 'order')]
+    private $checkout;
+
 }
