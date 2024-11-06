@@ -75,20 +75,6 @@ function checkTokenAndUpdateUI() {
     }
 }
 
-function updateAuthUI(user) {
-    const authSection = document.getElementById('auth-section');
-    if (authSection && !authSection.querySelector('.fs-2')) {
-        authSection.innerHTML = `
-            <li class="nav-item active">
-                <a class="nav-link fs-2" href="">Hello <small class="text-secondary">(${user.name})</small></a>
-            </li>
-            <li class="nav-item active">
-                <a class="nav-link" href="/logout" onclick="handleLogout(event)">Logout</a>
-            </li>
-        `;
-    }
-}
-
 // Start periodic token check
 setInterval(() => {
     const token = sessionStorage.getItem('jwt');

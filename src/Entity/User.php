@@ -130,18 +130,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, JWTUser
     {
     }
 
-    public function getUserIdentifier(): string
-    {
-        return $this->email;  // Changed from id to email
-    }
-
-    public static function createFromPayload($email, array $payload)
-    {
-        $user = new self();
-        $user->setEmail($email);
-        $user->setRoles($payload['roles'] ?? ['ROLE_USER']);
-        return $user;
-    }
 
     public function getShippingAddress()
     {
@@ -152,5 +140,19 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, JWTUser
     {
         $this->shippingAddress = $shipping_address;
         return $this;
+    }
+
+    public function getUserIdentifier(): string
+    {
+        return $this->getId()->toString();
+    }
+
+    public static function createFromPayload($id, array $payload): self
+    {
+        $user = new self();
+        // Set the ID from the JWT token
+        $user->id = Uuid::fromString($id);
+        $user->setRoles($payload['roles'] ?? ['ROLE_USER']);
+        return $user;
     }
 }

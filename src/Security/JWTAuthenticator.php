@@ -35,12 +35,13 @@ class JWTAuthenticator extends AbstractAuthenticator
 
         $payload = $this->jwtManager->parse($token);
 
-        echo '<pre>';
-        var_dump($payload);
-        echo '</pre>';
+        // if payload does not contain id
+        if (!isset($payload['id'])) {
+            throw new AuthenticationException('Invalid JWT token');
+        }
 
         return new SelfValidatingPassport(
-            new UserBadge($payload['username'])
+            new UserBadge($payload['id'])
         );
     }
 

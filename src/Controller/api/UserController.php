@@ -48,6 +48,7 @@ class UserController extends AbstractController
         $this->entityManager->persist($user);
         $this->entityManager->flush();
 
+        // Create token with user ID
         $token = $this->jwtManager->create($user);
 
         return $this->json([

@@ -8,28 +8,27 @@
             <li class="nav-item active">
                 <a class="nav-link">Products</a>
             </li>
-        </ul>
-        <ul class="navbar-nav">
-            <div id="auth-section">
-                {% if app.user %}
-                    <li class="nav-item active">
-                        <a class="nav-link fs-2" href="">Hello <small class="text-secondary">({{ app.user.name }})</small></a>
-                    </li>
-
-                    <li class="nav-item active">
-                        <a class="nav-link" onclick="handleLogout(event)">Logout</a>
-                    </li>
-                {% else %}
-                    <li class="nav-item active">
-                        <a class="nav-link" href="{{ path('app_registration') }}">Register</a>
-                    </li>
-
-                    <li class="nav-item active">
-                        <a class="nav-link" href="{{ path('app_login') }}">Login</a>
-                    </li>
-                {% endif %}
-            </div>
             <li class="nav-item active">
+                <a class="nav-link">Products</a>
+            </li>
+        </ul>
+        <ul class="navbar-nav ms-auto d-flex flex-row" id="auth-section">
+            {% if app.user %}
+                <li class="nav-item active mx-2">
+                    <a class="nav-link" href="">Hello <small class="text-secondary">({{ app.user.name }})</small></a>
+                </li>
+                <li class="nav-item active mx-2">
+                    <a class="nav-link" onclick="handleLogout(event)">Logout</a>
+                </li>
+            {% else %}
+                <li class="nav-item active mx-2 d-flex">
+                    <a class="nav-link" href="{{ path('app_registration') }}">Register</a>
+                    <a class="nav-link" href="{{ path('app_login') }}">Login</a>
+                </li>
+            {% endif %}
+        </ul>
+        <ul class="navbar-nav ms-auto d-flex flex-row" id="cart">
+            <li class="nav-item active mx-2">
                 <a title="Panier" class="nav-link" href=""><i class="bi bi-cart3"></i></a>
             </li>
         </ul>
