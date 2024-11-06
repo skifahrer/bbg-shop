@@ -1,0 +1,70 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}User Registration{% endblock %}
+
+{% block body %}
+    <h1>User Registration</h1>
+    <form id="registration-form">
+        <div>
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" required>
+        </div>
+        <div>
+            <label for="family">Family Name:</label>
+            <input type="text" id="family" name="family" required>
+        </div>
+        <div>
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required>
+        </div>
+        <div>
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+        </div>
+        <button type="submit">Register</button>
+    </form>
+    <div id="error-message" style="color: red;"></div>
+    <div id="success-message" style="color: green;"></div>
+
+    <script>
+        // Check if JWT exists in session storage and redirect to /home
+        if (sessionStorage.getItem('jwt')) {
+            window.location.href = '/';
+        }
+
+        document.getElementById('registration-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const data = {
+                name: document.getElementById('name').value,
+                family: document.getElementById('family').value,
+                email: document.getElementById('email').value,
+                password: document.getElementById('password').value
+            };
+
+            fetch('/api/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.jwt) {
+                    sessionStorage.setItem('jwt', data.jwt);
+                    console.log('Success:', data);
+                    document.getElementById('error-message').textContent = '';
+                    document.getElementById('success-message').textContent = 'Registration successful!';
+                    window.location.href = '/';
+                } else if (data.error) {
+                    document.getElementById('error-message').textContent = data.error;
+                }
+            })
+            .catch((error) => {
+                document.getElementById('error-message').textContent = 'An error occurred. Please try again.';
+                console.error('Error:', error);
+            });
+        });
+    </script>
+{% endblock %}
