@@ -18,6 +18,8 @@ login:
   email: 'E-mail'
   password: 'Lozinka'
   submit: 'Prijavi se'
+  success: 'Uspjeh'
+  error: 'Greška'
 auth:
   login: 'Prijava'
   logout: 'Odjava'

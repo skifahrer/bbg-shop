@@ -19,12 +19,14 @@ use ApiPlatform\Metadata\Get;
 
 #[Post(
     uriTemplate: '/users/register',
-    controller: 'App\ApiResource\UserController::register'
+    controller: 'App\ApiResource\UserController::register',
+    name: 'api_register'
 )]
 #[Get(
     uriTemplate: '/users/me',
     controller: 'App\ApiResource\UserController::me',
     security: "is_granted('ROLE_USER')",
+    name: 'api_me'
 )]
 
 class UserController extends AbstractController

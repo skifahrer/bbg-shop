@@ -18,6 +18,8 @@ login:
   email: 'E-pošta'
   password: 'Geslo'
   submit: 'Prijava'
+  success: 'Uspeh'
+  error: 'Napaka'
 auth:
   login: 'Prijava'
   logout: 'Odjava'

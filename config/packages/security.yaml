@@ -1,5 +1,9 @@
 # config/packages/security.yaml
 security:
+    password_hashers:
+        App\Entity\User:
+            algorithm: 'auto'
+
     providers:
         app_user_provider:
             entity:
@@ -12,7 +16,11 @@ security:
             security: false
 
         login:
-            pattern: ^/api/login
+            pattern: ^/api/auth/login
+            stateless: true
+
+        logout:
+            pattern: ^/api/auth/logout
             stateless: true
 
         api:
@@ -23,8 +31,8 @@ security:
             custom_authenticator: App\Security\JWTAuthenticator
 
     access_control:
-        - { path: ^/api/login, roles: PUBLIC_ACCESS }
-        - { path: ^/api/logout, roles: IS_AUTHENTICATED_FULLY }
+        - { path: ^/api/auth/login, roles: PUBLIC_ACCESS }
+        - { path: ^/api/auth/logout, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/api/users/register, roles: PUBLIC_ACCESS }
         - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/api/users/admin, roles: ROLE_ADMIN }

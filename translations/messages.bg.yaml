@@ -18,6 +18,8 @@ login:
   email: 'Имейл'
   password: 'Парола'
   submit: 'Вход'
+  success: 'Успех'
+  error: 'Грешка'
 auth:
   login: 'Вход'
   logout: 'Изход'

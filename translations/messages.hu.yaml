@@ -18,6 +18,8 @@ login:
   email: 'Email'
   password: 'Jelszó'
   submit: 'Bejelentkezés'
+  success: 'Siker'
+  error: 'Hiba'
 auth:
   login: 'Bejelentkezés'
   logout: 'Kijelentkezés'

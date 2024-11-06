@@ -18,6 +18,8 @@ login:
   email: 'Email'
   password: 'Parolă'
   submit: 'Autentificare'
+  success: 'Succes'
+  error: 'Eroare'
 auth:
   login: 'Autentificare'
   logout: 'Deconectare'

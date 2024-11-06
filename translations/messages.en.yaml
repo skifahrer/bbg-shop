@@ -18,6 +18,8 @@ login:
   email: 'Email'
   password: 'Password'
   submit: 'Login'
+  success: 'Success'
+  error: 'Error'
 auth:
   login: 'Login'
   logout: 'Logout'

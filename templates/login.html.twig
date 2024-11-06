@@ -12,6 +12,8 @@
     <input type="password" id="password" name="password" required>
     <br>
     <button type="submit">{{ 'login.submit'|trans }}</button>
+    <div id="error-message" style="color: red;"></div>
+    <div id="success-message" style="color: green;"></div>
 </form>
 
 <script>
@@ -20,7 +22,7 @@
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
 
-        const response = await fetch('/api/auth', {
+        const response = await fetch('/api/auth/login', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -30,11 +32,19 @@
 
         if (response.ok) {
             const data = await response.json();
-            sessionStorage.setItem('jwt', data.token);
-            alert('Login successful!');
-            // Redirect or perform other actions after successful login
+
+            if (data.jwt) {
+                sessionStorage.setItem('jwt', data.jwt);
+                console.log('Success:', data);
+                document.getElementById('error-message').textContent = '';
+                document.getElementById('success-message').textContent = '{{ 'login.success'|trans }}!';
+                window.location.href = '/';
+            } else if (data.error) {
+                document.getElementById('error-message').textContent = data.error;
+            }
         } else {
-            alert('Login failed!');
+            const data = await response.json();
+            document.getElementById('error-message').textContent = '{{ 'login.error'|trans }}: ' + data.error;
         }
     }
 </script>

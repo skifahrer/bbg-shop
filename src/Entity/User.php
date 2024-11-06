@@ -117,13 +117,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, JWTUser
 
     public function setPassword(string $password): self
     {
-        $this->password = $this->hashPassword($password);
+        $this->password = $password;
         return $this;
-    }
-
-    private function hashPassword(string $password): string
-    {
-        return password_hash($password, PASSWORD_BCRYPT);
     }
 
     public function eraseCredentials(): void

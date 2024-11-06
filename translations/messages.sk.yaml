@@ -18,6 +18,8 @@ login:
   email: 'Email'
   password: 'Heslo'
   submit: 'Prihlásiť'
+  success: 'Úspech'
+  error: 'Chyba'
 auth:
   login: 'Prihlásiť'
   logout: 'Odhlásiť'
