@@ -1,5 +1,17 @@
+api:
+    resource:
+        path: ../src/Controller/Api/
+        namespace: App\Controller\Api
+    type: attribute
+    prefix: /api
+
 controllers:
     resource:
         path: ../src/Controller/
         namespace: App\Controller
     type: attribute
+    prefix: '/{_locale}'
+    requirements:
+        _locale: 'en|sk|sl|hu|hr|ro|bg'
+    defaults:
+        _locale: 'en'
