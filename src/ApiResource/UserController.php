@@ -1,10 +1,10 @@
 <?php
-
-namespace App\Controller\api;
+namespace App\ApiResource;
 
 use App\Entity\User;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -13,7 +13,19 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
-use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Get;
+
+
+#[Post(
+    uriTemplate: '/users/register',
+    controller: 'App\ApiResource\UserController::register'
+)]
+#[Get(
+    uriTemplate: '/users/me',
+    controller: 'App\ApiResource\UserController::me',
+    security: "is_granted('ROLE_USER')",
+)]
 
 class UserController extends AbstractController
 {
@@ -24,7 +36,6 @@ class UserController extends AbstractController
         private JWTTokenManagerInterface $jwtManager
     ) {}
 
-    #[Route('/api/register', name: 'api_register', methods: ['POST'])]
     public function register(Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
@@ -65,9 +76,7 @@ class UserController extends AbstractController
                            ], Response::HTTP_CREATED);
     }
 
-    #[Route('/api/users', name: 'get_user', methods: ['GET'])]
-    #[IsGranted('ROLE_USER')]
-    public function getProfile(#[CurrentUser] User $user): JsonResponse
+    public function me(#[CurrentUser] User $user): JsonResponse
     {
         return $this->json([
                                'user' => [

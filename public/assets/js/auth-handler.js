@@ -60,7 +60,7 @@ function checkTokenAndUpdateUI() {
         }
 
         // Fetch user data and update UI
-        fetch('/api/users', {
+        fetch('/api/users/me', {
             headers: {
                 'Authorization': `Bearer ${token}`
             }

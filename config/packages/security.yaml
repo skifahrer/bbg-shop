@@ -1,3 +1,4 @@
+# config/packages/security.yaml
 security:
     providers:
         app_user_provider:
@@ -13,23 +14,18 @@ security:
         login:
             pattern: ^/api/login
             stateless: true
-            json_login:
-                check_path: /api/login_check
-                success_handler: lexik_jwt_authentication.handler.authentication_success
-                failure_handler: lexik_jwt_authentication.handler.authentication_failure
-                provider: app_user_provider
 
         api:
             pattern: ^/api
-            stateless: false
             provider: app_user_provider
+            stateless: false
             jwt: ~
             custom_authenticator: App\Security\JWTAuthenticator
 
     access_control:
         - { path: ^/api/login, roles: PUBLIC_ACCESS }
         - { path: ^/api/logout, roles: IS_AUTHENTICATED_FULLY }
-        - { path: ^/api/register, roles: PUBLIC_ACCESS }
+        - { path: ^/api/users/register, roles: PUBLIC_ACCESS }
         - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/api/users/admin, roles: ROLE_ADMIN }
-        - { path: ^/api/users, roles: ROLE_USER }
+        - { path: ^/api/users/me, roles: ROLE_USER }

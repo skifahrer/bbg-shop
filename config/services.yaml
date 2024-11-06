@@ -17,12 +17,6 @@ services:
             - { name: kernel.event_listener, event: kernel.request, priority: 20 }
         arguments: [ '%app.default_locale%', '%app.supported_locales%' ]
 
-    app.event.authentication_success_listener:
-        class: App\EventListener\AuthenticationSuccessListener
-        arguments:
-            - '@security.token_storage'
-        tags:
-            - { name: kernel.event_listener, event: lexik_jwt_authentication.on_authentication_success, method: onAuthenticationSuccess }
 
     App\Security\JWTAuthenticator:
         arguments:

@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Controller\api;
+namespace App\ApiResource;
 
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Bundle\SecurityBundle\Security;  // Updated import
-use Doctrine\ORM\EntityManagerInterface;
 
 class LogoutController extends AbstractController
 {
