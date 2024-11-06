@@ -9,6 +9,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Security\User\JWTUserInterface;
 
+#[ORM\Index(name: 'idx_user_email', columns: ['email'])]
 #[ORM\Entity(repositoryClass: "App\Repository\UserRepository")]
 class User implements UserInterface, PasswordAuthenticatedUserInterface, JWTUserInterface
 {
@@ -45,7 +46,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, JWTUser
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private $shippingAddress;
 
-    // Getters and setters...
     public function getId(): UuidInterface
     {
         return $this->id;
@@ -125,7 +125,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, JWTUser
     {
     }
 
-
     public function getShippingAddress()
     {
         return $this->shippingAddress;
@@ -145,7 +144,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, JWTUser
     public static function createFromPayload($id, array $payload): self
     {
         $user = new self();
-        // Set the ID from the JWT token
         $user->id = Uuid::fromString($id);
         $user->setRoles($payload['roles'] ?? ['ROLE_USER']);
         return $user;
