@@ -1,34 +1,8 @@
-{# templates/login.html.twig #}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <title>Login</title>
-    <script>
-        async function login(event) {
-            event.preventDefault();
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
+{% extends 'base.html.twig' %}
 
-            const response = await fetch('/api/auth', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ email, password })
-            });
+{% block title %}Login{% endblock %}
 
-            if (response.ok) {
-                const data = await response.json();
-                sessionStorage.setItem('jwt', data.token);
-                alert('Login successful!');
-                // Redirect or perform other actions after successful login
-            } else {
-                alert('Login failed!');
-            }
-        }
-    </script>
-</head>
-<body>
+{% block body %}
 <h1>Login</h1>
 <form onsubmit="login(event)">
     <label for="email">Email:</label>
@@ -39,5 +13,29 @@
     <br>
     <button type="submit">Login</button>
 </form>
-</body>
-</html>
+
+<script>
+    async function login(event) {
+        event.preventDefault();
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+
+        const response = await fetch('/api/auth', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email, password })
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            sessionStorage.setItem('jwt', data.token);
+            alert('Login successful!');
+            // Redirect or perform other actions after successful login
+        } else {
+            alert('Login failed!');
+        }
+    }
+</script>
+{% endblock %}

@@ -48,6 +48,7 @@ class JWTAuthenticator extends AbstractAuthenticator
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): ?Response
     {
         // Continue with the request
+        $request->getSession()->set('_security_' . $firewallName, serialize($token));
         return null;
     }
 
