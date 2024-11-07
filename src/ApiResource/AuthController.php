@@ -3,6 +3,9 @@
 namespace App\ApiResource;
 
 use App\Repository\UserRepository;
+use App\Entity\User;
+use Ramsey\Uuid\Uuid;
+use Ramsey\Uuid\UuidInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -12,21 +15,17 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use ApiPlatform\Metadata\Post;
-use ApiPlatform\Metadata\Get;
-
 
 #[Post(
     uriTemplate: '/auth/login',
     controller: 'App\ApiResource\AuthController::login',
     name: 'api_login'
 )]
-
 #[Post(
     uriTemplate: '/auth/logout',
     controller: 'App\ApiResource\AuthController::logout',
     name: 'api_logout'
 )]
-
 class AuthController extends AbstractController
 {
     private $security;
@@ -47,20 +46,36 @@ class AuthController extends AbstractController
         JWTTokenManagerInterface $jwtManager
     ): JsonResponse {
         $data = json_decode($request->getContent(), true);
-        $email = $data['email'] ?? '';
-        $password = $data['password'] ?? '';
 
-        $user = $userRepository->findOneBy(['email' => $email]);
+        if (!isset($data['email']) || !isset($data['password'])) {
+            return new JsonResponse(
+                ['error' => 'Email and password are required.'],
+                Response::HTTP_BAD_REQUEST
+            );
+        }
 
+        $userArray = $userRepository->findOneByEmailForAuth($data['email']);
 
-        if (!$user || !$passwordHasher->isPasswordValid($user, $password)) {
+        if (!$userArray || !($userArray['password'] == $data['password'])) {
             return new JsonResponse(
                 ['error' => 'Invalid credentials.'],
                 Response::HTTP_UNAUTHORIZED
             );
         }
+        // we need to create this entity to generate the token
+        $user = new User();
+        $user->setEmail($data['email']);
+        $user->setPassword($data['password']);
+
+        // Set the ID using reflection since it's private
+        $reflectionProperty = new \ReflectionProperty(User::class, 'id');
+        $reflectionProperty->setValue($user, Uuid::fromString($userArray['id']));
+
+        // Set default roles
+        $user->setRoles(['ROLE_USER']);
 
         $token = $jwtManager->create($user);
+
         return new JsonResponse(['jwt' => $token]);
     }
 
