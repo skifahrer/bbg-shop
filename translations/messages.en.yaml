@@ -28,12 +28,17 @@ auth:
     register: 'Register'
     hello: 'Hello'
 cart:
+    your_cart: 'Your Cart'
     empty: 'Your cart is empty'
     total: 'Total'
     checkout: 'Checkout'
     items: 'Items'
     add_to_cart: 'Add to Cart'
     remove: 'Remove'
+    product: 'Product'
+    price: 'Price'
+    quantity: 'Quantity'
+    close: 'Close'
 product:
     price: 'Price'
     stock: 'Stock'

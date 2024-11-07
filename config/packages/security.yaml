@@ -37,4 +37,7 @@ security:
         - { path: ^/api/products, roles: PUBLIC_ACCESS }
         - { path: ^/api/users/admin, roles: ROLE_ADMIN }
         - { path: ^/api/users/me, roles: ROLE_USER }
+        - { path: ^/api/cart, roles: ROLE_USER }
+        - { path: ^/api/cart/add, roles: ROLE_USER }
+        - { path: ^/api/cart/update, roles: ROLE_USER }
         - { path: ^/api, roles: PUBLIC_ACCESS }

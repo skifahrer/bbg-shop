@@ -28,12 +28,17 @@ auth:
     register: 'Registracija'
     hello: 'Pozdravljeni'
 cart:
+    your_cart: 'Vaša košarica'
     empty: 'Vaša košarica je prazna'
     total: 'Skupaj'
     checkout: 'Blagajna'
     items: 'Izdelki'
     add_to_cart: 'Dodaj v košarico'
     remove: 'Odstrani'
+    product: 'Izdelek'
+    price: 'Cena'
+    quantity: 'Količina'
+    close: 'Zapri'
 product:
     price: 'Cena'
     stock: 'Zaloga'

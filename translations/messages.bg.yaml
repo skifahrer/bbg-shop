@@ -28,12 +28,17 @@ auth:
     register: 'Регистрация'
     hello: 'Здравейте'
 cart:
+    your_cart: 'Вашата количка'
     empty: 'Вашата количка е празна'
     total: 'Общо'
     checkout: 'Плащане'
     items: 'Продукти'
     add_to_cart: 'Добави в количката'
     remove: 'Премахни'
+    product: 'Продукт'
+    price: 'Цена'
+    quantity: 'Количество'
+    close: 'Затвори'
 product:
     price: 'Цена'
     stock: 'Наличност'

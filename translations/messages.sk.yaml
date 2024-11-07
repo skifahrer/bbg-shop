@@ -28,12 +28,17 @@ auth:
     register: 'Registrovať'
     hello: 'Ahoj'
 cart:
+    your_cart: 'Váš košík'
     empty: 'Váš košík je prázdny'
     total: 'Spolu'
     checkout: 'Pokladňa'
     items: 'Položky'
     add_to_cart: 'Pridať do košíka'
     remove: 'Odstrániť'
+    product: 'Produkt'
+    price: 'Cena'
+    quantity: 'Množstvo'
+    close: 'Zavrieť'
 product:
     price: 'Cena'
     stock: 'Skladom'

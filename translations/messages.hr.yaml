@@ -28,12 +28,17 @@ auth:
     register: 'Registracija'
     hello: 'Pozdrav'
 cart:
+    your_cart: 'Vaša košarica'
     empty: 'Vaša košarica je prazna'
     total: 'Ukupno'
     checkout: 'Blagajna'
     items: 'Artikli'
     add_to_cart: 'Dodaj u košaricu'
     remove: 'Ukloni'
+    product: 'Proizvod'
+    price: 'Cijena'
+    quantity: 'Količina'
+    close: 'Zatvori'
 product:
     price: 'Cijena'
     stock: 'Zaliha'

@@ -1,10 +1,9 @@
-{# templates/cart_modal.html.twig #}
 <div class="modal fade" id="cartModal" tabindex="-1" aria-labelledby="cartModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="cartModalLabel">{{ 'cart.your_cart'|trans }}</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="border: 0;">&times;</button>
             </div>
             <div class="modal-body">
                 <div id="cartContent">
@@ -33,7 +32,6 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ 'cart.close'|trans }}</button>
                 <button type="button" class="btn btn-primary" id="proceedToCheckout">{{ 'cart.checkout'|trans }}</button>
             </div>
         </div>
@@ -135,9 +133,14 @@
             window.location.href = '/checkout';
         });
 
+        // Manual close button handler
+        document.querySelector('.btn-close').addEventListener('click', () => {
+            if (cartModal) {
+                cartModal.hide();
+            }
+        });
+
         // Initial cart load
         updateCart();
     });
 </script>
-
-{% include "cart.html.twig" %}

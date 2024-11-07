@@ -8,7 +8,7 @@
     <div class="collapse navbar-collapse" id="navbarCollapse">
         <ul class="navbar-nav mr-auto">
             <li class="nav-item active">
-                <a class="nav-link" href="/">{{ 'navigation.products'|trans }}</a>
+                <a class="nav-link" href="/{{ app.request.locale|lower }}">{{ 'navigation.products'|trans }}</a>
             </li>
         </ul>
 
@@ -43,8 +43,9 @@
         </ul>
         <ul class="navbar-nav ms-auto d-flex flex-row" id="cart">
             <li class="nav-item active mx-2">
-                <a title="cart" class="nav-link" href="">
+                <a title="cart" class="nav-link position-relative" href="#" data-bs-toggle="modal" data-bs-target="#cartModal">
                     <i class="bi bi-cart3"></i>
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger cart-count">0</span>
                 </a>
             </li>
         </ul>
@@ -66,3 +67,5 @@
         }
     }
 </script>
+
+{% include "cart.html.twig" %}

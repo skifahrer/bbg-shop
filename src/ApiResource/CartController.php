@@ -21,19 +21,19 @@ use App\Entity\User;
 
 
 #[Get(
-    uriTemplate: '/carts',
+    uriTemplate: '/cart',
     controller: 'App\ApiResource\CartController::getCart',
     security: "is_granted('ROLE_USER')",
     name: 'api_get_cart'
 )]
 #[Post(
-    uriTemplate: '/carts/add',
+    uriTemplate: '/cart/add',
     controller: 'App\ApiResource\CartController::addToCart',
     security: "is_granted('ROLE_USER')",
     name: 'api_add_to_cart'
 )]
 #[Put(
-    uriTemplate: '/carts/update',
+    uriTemplate: '/cart/update',
     controller: 'App\ApiResource\CartController::updateCart',
     security: "is_granted('ROLE_USER')",
     name: 'api_update_cart'

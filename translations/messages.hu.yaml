@@ -28,12 +28,17 @@ auth:
     register: 'Regisztráció'
     hello: 'Üdvözöljük'
 cart:
+    your_cart: 'Kosarad'
     empty: 'A kosár üres'
     total: 'Összesen'
     checkout: 'Pénztár'
     items: 'Termékek'
     add_to_cart: 'Kosárba'
     remove: 'Eltávolítás'
+    product: 'Termék'
+    price: 'Ár'
+    quantity: 'Mennyiség'
+    close: 'Bezárás'
 product:
     price: 'Ár'
     stock: 'Készlet'
