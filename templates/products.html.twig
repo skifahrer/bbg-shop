@@ -7,7 +7,7 @@
                        id="searchInput"
                        class="form-control"
                        placeholder="{{ 'search.placeholder'|trans }}"
-                       aria-label="{{ 'search.label'|trans }}">
+                       aria-label="{{ 'search.placeholder'|trans }}">
             </div>
         </div>
     </div>
@@ -15,10 +15,10 @@
     <div class="pagination-controls mt-4">
         <nav aria-label="Product navigation">
             <ul class="pagination justify-content-center">
-                <li class="page-item">
+                <li class="page-item" id="prevPageItem">
                     <button class="page-link" id="prevPage">{{ 'navigation.previous'|trans }}</button>
                 </li>
-                <li class="page-item">
+                <li class="page-item" id="nextPageItem">
                     <button class="page-link" id="nextPage">{{ 'navigation.next'|trans }}</button>
                 </li>
             </ul>
@@ -30,10 +30,10 @@
     <div class="pagination-controls mt-4">
         <nav aria-label="Product navigation">
             <ul class="pagination justify-content-center">
-                <li class="page-item">
+                <li class="page-item" id="prevPageItem2">
                     <button class="page-link" id="prevPage">{{ 'navigation.previous'|trans }}</button>
                 </li>
-                <li class="page-item">
+                <li class="page-item" id="nextPageItem2">
                     <button class="page-link" id="nextPage">{{ 'navigation.next'|trans }}</button>
                 </li>
             </ul>
@@ -61,9 +61,10 @@
         const productGrid = document.querySelector('.product-grid');
         const prevPageButtons = document.querySelectorAll('#prevPage');
         const nextPageButtons = document.querySelectorAll('#nextPage');
+        const prevPageItems = document.querySelectorAll('#prevPageItem, #prevPageItem2');
+        const nextPageItems = document.querySelectorAll('#nextPageItem, #nextPageItem2');
         const modalElement = document.getElementById('productModal');
         const searchInput = document.getElementById('searchInput');
-        //const searchButton = document.getElementById('searchButton');
         let productModal = null;
         let currentPage = 1;
         const limit = 8;
@@ -135,11 +136,14 @@
         }
 
         function updatePaginationButtons(currentPage, totalPages) {
-            prevPageButtons.forEach(button => {
-                button.disabled = currentPage <= 1;
+            // Handle Previous buttons visibility
+            prevPageItems.forEach(item => {
+                item.style.display = currentPage <= 1 ? 'none' : 'list-item';
             });
-            nextPageButtons.forEach(button => {
-                button.disabled = currentPage >= totalPages;
+
+            // Handle Next buttons visibility
+            nextPageItems.forEach(item => {
+                item.style.display = currentPage >= totalPages ? 'none' : 'list-item';
             });
         }
 
@@ -253,9 +257,6 @@
                 loadProducts(currentPage + 1, currentSearch);
             });
         });
-
-        // Add search event listeners
-        //searchButton.addEventListener('click', handleSearch);
 
         // Debounced search for input typing
         const debouncedSearch = debounce(handleSearch, 500);
