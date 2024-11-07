@@ -6,10 +6,10 @@
         <nav aria-label="Product navigation">
             <ul class="pagination justify-content-center">
                 <li class="page-item">
-                    <button class="page-link" id="prevPage">Previous</button>
+                    <button class="page-link" id="prevPage">{{ 'navigation.previous'|trans }}</button>
                 </li>
                 <li class="page-item">
-                    <button class="page-link" id="nextPage">Next</button>
+                    <button class="page-link" id="nextPage">{{ 'navigation.next'|trans }}</button>
                 </li>
             </ul>
         </nav>
@@ -22,12 +22,17 @@
 </div>
 
 <style>
+    #productBookshelf {
+        padding-top: 80px; /* You can adjust this value based on your menu bar height */
+    }
+
     .product-card {
         border: 1px solid #ddd;
         padding: 15px;
         margin-bottom: 20px;
         border-radius: 8px;
         transition: transform 0.2s;
+        cursor: pointer;
     }
 
     .product-card:hover {
@@ -46,10 +51,21 @@
         color: #28a745;
     }
 
+    .product-stock.out-of-stock {
+        color: #dc3545;
+    }
+
     .product-price {
         font-weight: bold;
         font-size: 1.2em;
         color: #007bff;
+    }
+
+    .product-title {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
     }
 </style>
 
@@ -60,7 +76,7 @@
         const nextPageBtn = document.getElementById('nextPage');
 
         let currentPage = 1;
-        const limit = 10; // Shows 10 products (5 in each row)
+        const limit = 8;
 
         function loadProducts(page) {
             fetch(`/api/products?page=${page}&limit=${limit}`)
@@ -79,23 +95,36 @@
                 const productCard = document.createElement('div');
                 productCard.classList.add('col-md-6', 'col-lg-3', 'mb-4');
 
-                const languageCode = document.documentElement.lang || 'en';
-                const productTitle = product[`title_${languageCode}`] || product.title_en;
+                // Get browser language and capitalize first letter
+                const browserLang = (document.documentElement.lang || 'en').toLowerCase();
+                const langKey = browserLang.charAt(0).toUpperCase() + browserLang.slice(1);
+                const titleKey = `title${langKey}`;
+
+                // Get the title with proper error handling
+                let productTitle = '';
+                if (product[titleKey]) {
+                    productTitle = product[titleKey];
+                } else if (product.titleEn) {
+                    productTitle = product.titleEn;
+                } else {
+                    productTitle = 'Title not available';
+                }
 
                 productCard.innerHTML = `
-                <div class="product-card">
-                    <img src="${product.image || '{{ asset("images/product.jpeg") }}'}"
-                         alt="${productTitle}"
-                         class="product-image">
-                    <h5 class="product-title">${productTitle}</h5>
-                    <p class="product-stock">In Stock: ${product.stock}</p>
-                    <p class="product-price">${product.oxprice}</p>
-                    <button class="btn btn-primary btn-block view-details"
-                            data-product-id="${product.id}">
-                        More Details
-                    </button>
-                </div>
-            `;
+                    <div class="product-card" data-product-id="${product.id}">
+                        <img src="${product.image || '{{ asset("images/product.jpeg") }}'}"
+                             alt="${productTitle}"
+                             class="product-image">
+                        <h5 class="product-title" title="${productTitle}">${productTitle}</h5>
+                        <p class="product-stock ${product.stock <= 0 ? 'out-of-stock' : ''}">
+                            ${product.stock <= 0 ? '{{ 'product.out_of_stock'|trans }}' : '{{ 'product.stock'|trans }}: ' + product.stock}
+                        </p>
+                        <p class="product-price">${product.oxprice} €</p>
+                        <button class="btn btn-primary btn-block view-details">
+                            {{ 'product.details'|trans }}
+                        </button>
+                    </div>
+                `;
                 productGrid.appendChild(productCard);
             });
         }
@@ -117,8 +146,9 @@
         });
 
         productGrid.addEventListener('click', (e) => {
-            if (e.target.classList.contains('view-details')) {
-                const productId = e.target.dataset.productId;
+            const productCard = e.target.closest('.product-card');
+            if (productCard) {
+                const productId = productCard.dataset.productId;
                 showProductDetails(productId);
             }
         });
@@ -136,21 +166,21 @@
 
                     modalTitle.textContent = productTitle;
                     modalBody.innerHTML = `
-                    <div class="row">
-                        <div class="col-md-6">
-                            <img src="${data.image || '{{ asset("images/product.jpeg") }}'}"
-                                 class="img-fluid" alt="${productTitle}">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <img src="${data.image || '{{ asset("images/product.jpeg") }}'}"
+                                     class="img-fluid" alt="${productTitle}">
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Item:</strong> ${data.item}</p>
+                                <p><strong>Price:</strong> ${data.oxprice}</p>
+                                <p><strong>Stock:</strong> ${data.stock}</p>
+                                <p><strong>Dimensions:</strong> ${data.length}x${data.width}x${data.height}</p>
+                                <p><strong>Weight:</strong> ${data.weight}</p>
+                                ${data.features_json ? `<p><strong>Features:</strong> ${data.features_json}</p>` : ''}
+                            </div>
                         </div>
-                        <div class="col-md-6">
-                            <p><strong>Item:</strong> ${data.item}</p>
-                            <p><strong>Price:</strong> ${data.oxprice}</p>
-                            <p><strong>Stock:</strong> ${data.stock}</p>
-                            <p><strong>Dimensions:</strong> ${data.length}x${data.width}x${data.height}</p>
-                            <p><strong>Weight:</strong> ${data.weight}</p>
-                            ${data.features_json ? `<p><strong>Features:</strong> ${data.features_json}</p>` : ''}
-                        </div>
-                    </div>
-                `;
+                    `;
 
                     $(modal).modal('show');
                 });
