@@ -1,4 +1,16 @@
 <div id="productBookshelf" class="container" data-locale="{{ app.request.locale }}">
+    <div class="pagination-controls mt-4">
+        <nav aria-label="Product navigation">
+            <ul class="pagination justify-content-center">
+                <li class="page-item">
+                    <button class="page-link" id="prevPage">{{ 'navigation.previous'|trans }}</button>
+                </li>
+                <li class="page-item">
+                    <button class="page-link" id="nextPage">{{ 'navigation.next'|trans }}</button>
+                </li>
+            </ul>
+        </nav>
+    </div>
     <div class="row product-grid">
         <!-- Products will be dynamically inserted here in two rows -->
     </div>
@@ -16,13 +28,13 @@
     </div>
 </div>
 
-<!-- Updated modal code -->
-<div class="modal fade" id="productModal" tabindex="-1" role="dialog" aria-labelledby="productModalLabel" aria-hidden="true">
+<!-- Modal -->
+<div class="modal fade" id="productModal" tabindex="-1" aria-labelledby="productModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="productModalLabel">Product Details</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="border: 0">&times;</button>
             </div>
             <div class="modal-body">
                 <!-- Content will be dynamically inserted here -->
@@ -33,7 +45,7 @@
 
 <style>
     #productBookshelf {
-        padding-top: 80px;
+        padding-top: 0px;
     }
 
     .product-card {
@@ -78,7 +90,6 @@
         max-width: 100%;
     }
 
-    /* New modal styles */
     .modal-content {
         background-color: white;
         color: #333;
@@ -98,11 +109,26 @@
         margin-bottom: 10px;
     }
 
+    .btn-close {
+        cursor: pointer;
+        opacity: 0.5;
+        transition: opacity 0.15s;
+    }
+
+    .btn-close:hover {
+        opacity: 1;
+    }
+
     .json-properties {
         background-color: #f8f9fa;
         padding: 15px;
         border-radius: 5px;
+    }
+
+    .json-properties pre {
+        margin: 10px 0 0 0;
         white-space: pre-wrap;
+        word-wrap: break-word;
     }
 </style>
 
@@ -111,6 +137,27 @@
         const productGrid = document.querySelector('.product-grid');
         const prevPageBtn = document.getElementById('prevPage');
         const nextPageBtn = document.getElementById('nextPage');
+        const modalElement = document.getElementById('productModal');
+        let productModal = null;
+
+        // Initialize Bootstrap modal
+        if (typeof bootstrap !== 'undefined') {
+            productModal = new bootstrap.Modal(modalElement, {
+                keyboard: true,
+                backdrop: true
+            });
+
+            // Add modal event listeners for debugging
+            modalElement.addEventListener('shown.bs.modal', function () {
+                console.log('Modal shown');
+            });
+
+            modalElement.addEventListener('hidden.bs.modal', function () {
+                console.log('Modal hidden');
+            });
+        } else {
+            console.error('Bootstrap is not loaded!');
+        }
 
         let currentPage = 1;
         const limit = 8;
@@ -122,7 +169,8 @@
                     currentPage = data.currentPage;
                     updatePaginationButtons(data.currentPage, data.totalPages);
                     displayProducts(data.products);
-                });
+                })
+                .catch(error => console.error('Error loading products:', error));
         }
 
         function displayProducts(products) {
@@ -140,8 +188,6 @@
                 let productTitle = '';
                 if (product[titleKey]) {
                     productTitle = product[titleKey];
-                } else if (product.titleEn) {
-                    productTitle = product.titleEn;
                 } else {
                     productTitle = 'Title not available';
                 }
@@ -172,10 +218,16 @@
 
         function formatJSON(jsonString) {
             try {
+                // If jsonString is already an object, stringify it
+                if (typeof jsonString === 'object') {
+                    return JSON.stringify(jsonString, null, 2);
+                }
+                // If it's a string, parse it first then stringify
                 const obj = JSON.parse(jsonString);
                 return JSON.stringify(obj, null, 2);
             } catch (e) {
-                return jsonString;
+                console.error('Error formatting JSON:', e);
+                return jsonString || '';
             }
         }
 
@@ -183,17 +235,14 @@
             fetch(`/api/products/${productId}`)
                 .then(response => response.json())
                 .then(data => {
-                    const modalBody = document.querySelector('#productModal .modal-body');
+                    const modalBody = modalElement.querySelector('.modal-body');
                     const currentLocale = document.getElementById('productBookshelf').dataset.locale;
                     const browserLang = (currentLocale || 'en').toLowerCase();
-                    const langKey = browserLang.charAt(0).toUpperCase() + browserLang.slice(1);
-                    const languageCode = langKey || 'en';
+                    const titleKey = `title_${browserLang}`;
 
                     let productTitle = "";
-                    if (data[languageCode]) {
-                        productTitle = data[languageCode];
-                    } else if (data.titleEn) {
-                        productTitle = data.titleEn;
+                    if (data[titleKey]) {
+                        productTitle = data[titleKey];
                     } else {
                         productTitle = 'Title not available';
                     }
@@ -220,9 +269,13 @@
                         </div>
                     `;
 
-                    const modal = new bootstrap.Modal(document.getElementById('productModal'));
-                    modal.show();
-                });
+                    if (productModal) {
+                        productModal.show();
+                    } else {
+                        console.error('Bootstrap modal is not initialized!');
+                    }
+                })
+                .catch(error => console.error('Error loading product details:', error));
         }
 
         // Event Listeners
@@ -234,13 +287,20 @@
 
         nextPageBtn.addEventListener('click', () => {
             loadProducts(currentPage + 1);
-        });
+        });333
 
         productGrid.addEventListener('click', (e) => {
             const productCard = e.target.closest('.product-card');
             if (productCard) {
                 const productId = productCard.dataset.productId;
                 showProductDetails(productId);
+            }
+        });
+
+        // Manual close button handler
+        document.querySelector('.btn-close').addEventListener('click', () => {
+            if (productModal) {
+                productModal.hide();
             }
         });
 

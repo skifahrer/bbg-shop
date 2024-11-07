@@ -33,3 +33,4 @@ User can has multiple charts and multiple orders. Cart can have only one user, b
 ## TODOs
 
 - implement built-in Symfony password hashing
+- frontend
