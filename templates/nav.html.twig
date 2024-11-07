@@ -1,6 +1,5 @@
 {% set supported_locales = app_parameter('app.supported_locales') %}
 
-
 <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
     <a class="navbar-brand" href="{{ path('home', {'_locale': app.request.locale}) }}">BBG Shop</a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
@@ -51,3 +50,19 @@
         </ul>
     </div>
 </nav>
+
+<script>
+    function updateAuthUI(user) {
+        const authSection = document.getElementById('auth-section');
+        if (authSection && !authSection.querySelector('.fs-2')) {
+            authSection.innerHTML = `
+            <li class="nav-item active mx-2">
+                    <a class="nav-link" href="">{{ 'auth.hello'|trans }} ${user.name}!</a>
+            </li>
+            <li class="nav-item active mx-2">
+                <a class="nav-link" href="" onclick="handleLogout(event)">{{ 'auth.logout'|trans }}</a>
+            </li>
+        `;
+        }
+    }
+</script>
