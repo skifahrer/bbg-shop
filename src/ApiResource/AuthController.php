@@ -81,7 +81,7 @@ class AuthController extends AbstractController
         // Set default roles
         $user->setRoles(['ROLE_USER']);
 
-        $token = $jwtManager->create($user);
+        $token = $jwtManager->createFromPayload($user, ['exp' => (new \DateTime('+24 hours'))->getTimestamp()]);
 
         return new JsonResponse(['jwt' => $token]);
     }

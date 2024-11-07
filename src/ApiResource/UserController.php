@@ -62,7 +62,7 @@ class UserController extends AbstractController
         $this->entityManager->flush();
 
         // Create token with user ID
-        $token = $this->jwtManager->create($user);
+        $token = $this->jwtManager->createFromPayload($user, ['exp' => (new \DateTime('+24 hours'))->getTimestamp()]);
 
         return $this->json([
                                'message' => 'User registered successfully',
