@@ -159,14 +159,22 @@
                 .then(response => response.json())
                 .then(data => {
                     const modal = document.getElementById('productModal');
-                    const modalTitle = modal.querySelector('.modal-title');
-                    const modalBody = modal.querySelector('.modal-body');
 
-                    const languageCode = document.documentElement.lang || 'en';
-                    const productTitle = data[`title_${languageCode}`] || data.title_en;
+                    const currentLocale = document.getElementById('productBookshelf').dataset.locale;
+                    const browserLang = (currentLocale || 'en').toLowerCase();
+                    const langKey = browserLang.charAt(0).toUpperCase() + browserLang.slice(1);
+                    const languageCode = langKey || 'en';
 
-                    modalTitle.textContent = productTitle;
-                    modalBody.innerHTML = `
+                    let productTitle = "";
+                    if (data[languageCode]) {
+                        productTitle = data[languageCode];
+                    } else if (data.titleEn) {
+                        productTitle = data.titleEn;
+                    } else {
+                        productTitle = 'Title not available';
+                    }
+
+                    modal.innerHTML = `
                         <div class="row">
                             <div class="col-md-6">
                                 <img src="${data.image || '{{ asset("images/product.jpeg") }}'}"
@@ -183,7 +191,9 @@
                         </div>
                     `;
 
-                    $(modal).modal('show');
+                    // Bootstrap 5 modal initialization
+                    const bootstrapModal = new bootstrap.Modal(modal);
+                    bootstrapModal.show();
                 });
         }
 
