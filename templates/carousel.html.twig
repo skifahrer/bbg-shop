@@ -1,4 +1,4 @@
-<div id="productBookshelf" class="container">
+<div id="productBookshelf" class="container" data-locale="{{ app.request.locale }}">
     <div class="row product-grid">
         <!-- Products will be dynamically inserted here in two rows -->
     </div>
@@ -96,7 +96,8 @@
                 productCard.classList.add('col-md-6', 'col-lg-3', 'mb-4');
 
                 // Get browser language and capitalize first letter
-                const browserLang = (document.documentElement.lang || 'en').toLowerCase();
+                const currentLocale = document.getElementById('productBookshelf').dataset.locale;
+                const browserLang = (currentLocale || 'en').toLowerCase();
                 const langKey = browserLang.charAt(0).toUpperCase() + browserLang.slice(1);
                 const titleKey = `title${langKey}`;
 
