@@ -4,5 +4,3 @@ lexik_jwt_authentication:
     pass_phrase: '%env(JWT_PASSPHRASE)%'
     token_ttl: 3600
     user_id_claim: id  # This replaces user_identity_field
-    api_platform:
-        check_path: /api/login_check
