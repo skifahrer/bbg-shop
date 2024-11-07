@@ -43,95 +43,6 @@
     </div>
 </div>
 
-<style>
-    #productBookshelf {
-        padding-top: 0px;
-    }
-
-    .product-card {
-        border: 1px solid #ddd;
-        padding: 15px;
-        margin-bottom: 20px;
-        border-radius: 8px;
-        transition: transform 0.2s;
-        cursor: pointer;
-    }
-
-    .product-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
-
-    .product-image {
-        width: 100%;
-        height: 200px;
-        object-fit: contain;
-        margin-bottom: 15px;
-    }
-
-    .product-stock {
-        color: #28a745;
-    }
-
-    .product-stock.out-of-stock {
-        color: #dc3545;
-    }
-
-    .product-price {
-        font-weight: bold;
-        font-size: 1.2em;
-        color: #007bff;
-    }
-
-    .product-title {
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 100%;
-    }
-
-    .modal-content {
-        background-color: white;
-        color: #333;
-    }
-
-    .modal-body img {
-        max-width: 100%;
-        height: auto;
-        object-fit: contain;
-    }
-
-    .product-properties {
-        padding: 20px;
-    }
-
-    .product-properties p {
-        margin-bottom: 10px;
-    }
-
-    .btn-close {
-        cursor: pointer;
-        opacity: 0.5;
-        transition: opacity 0.15s;
-    }
-
-    .btn-close:hover {
-        opacity: 1;
-    }
-
-    .json-properties {
-        background-color: #f8f9fa;
-        padding: 15px;
-        border-radius: 5px;
-    }
-
-    .json-properties pre {
-        margin: 10px 0 0 0;
-        white-space: pre-wrap;
-        word-wrap: break-word;
-    }
-</style>
-
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const productGrid = document.querySelector('.product-grid');
@@ -216,21 +127,6 @@
             nextPageBtn.disabled = currentPage >= totalPages;
         }
 
-        function formatJSON(jsonString) {
-            try {
-                // If jsonString is already an object, stringify it
-                if (typeof jsonString === 'object') {
-                    return JSON.stringify(jsonString, null, 2);
-                }
-                // If it's a string, parse it first then stringify
-                const obj = JSON.parse(jsonString);
-                return JSON.stringify(obj, null, 2);
-            } catch (e) {
-                console.error('Error formatting JSON:', e);
-                return jsonString || '';
-            }
-        }
-
         function showProductDetails(productId) {
             fetch(`/api/products/${productId}`)
                 .then(response => response.json())
@@ -248,26 +144,24 @@
                     }
 
                     modalBody.innerHTML = `
-                        <div class="row">
-                            <div class="col-md-6">
-                                <img src="${data.image || '{{ asset("images/product.jpeg") }}'}"
-                                     class="img-fluid" alt="${productTitle}">
-                            </div>
-                            <div class="col-md-6 product-properties">
-                                <h4>${productTitle}</h4>
-                                <p><strong>Item:</strong> ${data.item}</p>
-                                <p><strong>Price:</strong> ${data.oxprice} €</p>
-                                <p><strong>Stock:</strong> ${data.stock}</p>
-                                <p><strong>Dimensions:</strong> ${data.length}x${data.width}x${data.height}</p>
-                                <p><strong>Weight:</strong> ${data.weight}</p>
-                                ${data.features_json ? `
-                                    <div class="json-properties">
-                                        <strong>Features:</strong>
-                                        <pre>${formatJSON(data.features_json)}</pre>
-                                    </div>` : ''}
-                            </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <img src="${data.image || '{{ asset("images/product.jpeg") }}'}"
+                                 class="img-fluid" alt="${productTitle}">
                         </div>
-                    `;
+                        <div class="col-md-6 product-properties">
+                            <h4>${productTitle}</h4>
+                            <p><strong>Item:</strong> ${data.item}</p>
+                            <p><strong>Price:</strong> ${data.oxprice} €</p>
+                            <p><strong>Stock:</strong> ${data.stock}</p>
+                            <p><strong>Dimensions:</strong> ${data.length}x${data.width}x${data.height}</p>
+                            <p><strong>Weight:</strong> ${data.weight}</p>
+                        </div>
+                        <div class="col-md-12 product-properties-features">
+                            ${data.features_json ? formatFeatures(data.features_json) : ''}
+                        </div>
+                    </div>
+                `;
 
                     if (productModal) {
                         productModal.show();
@@ -276,6 +170,34 @@
                     }
                 })
                 .catch(error => console.error('Error loading product details:', error));
+        }
+
+        function formatFeatures(featuresJson) {
+            try {
+                const features = typeof featuresJson === 'object' ? featuresJson : JSON.parse(featuresJson);
+
+                if (features && features.features && Array.isArray(features.features)) {
+                    return `
+                    <div class="features-section mt-4">
+                        <h5>{{ 'product.features'|trans }}</h5>
+                        <ul class="list-group">
+                            ${features.features
+                        .filter(feature => feature.desc)
+                        .map(feature => `
+                                    <li class="list-group-item">
+                                        <i class="fas fa-check text-success me-2"></i>
+                                        ${feature.desc}
+                                    </li>
+                                `).join('')}
+                        </ul>
+                    </div>
+                `;
+                }
+                return '';
+            } catch (e) {
+                console.error('Error formatting features:', e);
+                return '';
+            }
         }
 
         // Event Listeners
