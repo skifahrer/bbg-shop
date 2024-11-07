@@ -5,6 +5,7 @@ namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\UuidInterface;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: "App\Repository\ItemQuantityRepository")]
 class ItemQuantity
@@ -13,6 +14,7 @@ class ItemQuantity
     #[ORM\Column(type: 'uuid', unique: true)]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
     #[ORM\CustomIdGenerator(class: 'Ramsey\Uuid\Doctrine\UuidGenerator')]
+    #[Groups(['cart:read'])]
     private UuidInterface $id;
 
     #[ORM\ManyToOne(targetEntity: Cart::class, inversedBy: 'itemQuantities')]
@@ -25,9 +27,11 @@ class ItemQuantity
 
     #[ORM\ManyToOne(targetEntity: Product::class)]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['cart:read'])]
     private $product;
 
     #[ORM\Column(type: 'integer')]
+    #[Groups(['cart:read'])]
     private $quantity;
 
     public function getId(): UuidInterface

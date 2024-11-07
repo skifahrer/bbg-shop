@@ -72,10 +72,26 @@ class UserController extends AbstractController
                                    'family' => $user->getFamily(),
                                    'email' => $user->getEmail(),
                                    'roles' => $user->getRoles(),
-                                   'cart' => $user->getCarts()
+                                   // Only return cart IDs instead of full cart objects
+                                   'carts' => array_map(function($cart) {
+                                       return [
+                                           'id' => $cart->getId(),
+                                           'items' => array_map(function($item) {
+                                               return [
+                                                   'id' => $item->getId(),
+                                                   'product' => [
+                                                       'id' => $item->getProduct()->getId(),
+                                                       'name' => $item->getProduct()->getName(),
+                                                       'price' => $item->getProduct()->getPrice()
+                                                   ],
+                                                   'quantity' => $item->getQuantity()
+                                               ];
+                                           }, $cart->getItemQuantities()->toArray())
+                                       ];
+                                   }, $user->getCarts()->toArray())
                                ],
                                'jwt' => $token
-                           ], Response::HTTP_CREATED);
+                           ], Response::HTTP_CREATED, [], ['groups' => ['user:read']]);
     }
 
     public function me(#[CurrentUser] User $user): JsonResponse
@@ -88,89 +104,23 @@ class UserController extends AbstractController
                                    'family' => $user->getFamily(),
                                    'roles' => $user->getRoles(),
                                    'shipping_address' => $user->getShippingAddress(),
-                                   'cart' => $user->getCarts()
+                                   'carts' => array_map(function($cart) {
+                                       return [
+                                           'id' => $cart->getId(),
+                                           'items' => array_map(function($item) {
+                                               return [
+                                                   'id' => $item->getId(),
+                                                   'product' => [
+                                                       'id' => $item->getProduct()->getId(),
+                                                       'name' => $item->getProduct()->getName(),
+                                                       'price' => $item->getProduct()->getPrice()
+                                                   ],
+                                                   'quantity' => $item->getQuantity()
+                                               ];
+                                           }, $cart->getItemQuantities()->toArray())
+                                       ];
+                                   }, $user->getCarts()->toArray())
                                ]
-                           ]);
-    }
-
-    #[Route('/api/users/{id}', name: 'update_user', methods: ['PUT'])]
-    #[IsGranted('ROLE_USER')]
-    public function updateProfile(#[CurrentUser] User $user, Request $request): JsonResponse
-    {
-        $data = json_decode($request->getContent(), true);
-
-        if (isset($data['name'])) {
-            $user->setName($data['name']);
-        }
-        if (isset($data['family'])) {
-            $user->setFamily($data['family']);
-        }
-        if (isset($data['shipping_address'])) {
-            $user->setShippingAddress($data['shipping_address']);
-        }
-
-        $errors = $this->validator->validate($user);
-        if (count($errors) > 0) {
-            return $this->json([
-                                   'error' => (string) $errors
-                               ], Response::HTTP_BAD_REQUEST);
-        }
-
-        $this->entityManager->flush();
-
-        return $this->json([
-                               'message' => 'Profile updated successfully',
-                               'user' => [
-                                   'id' => $user->getId(),
-                                   'email' => $user->getEmail(),
-                                   'name' => $user->getName(),
-                                   'family' => $user->getFamily(),
-                                   'shipping_address' => $user->getShippingAddress(),
-                                   'cart' => $user->getCarts()
-                               ]
-                           ]);
-    }
-
-    #[Route('/api/users/{id}', name: 'delete_user', methods: ['DELETE'])]
-    #[IsGranted('ROLE_ADMIN')]
-    public function deleteUser(string $id): JsonResponse
-    {
-        $user = $this->userRepository->find($id);
-
-        if (!$user) {
-            return $this->json([
-                                   'error' => 'User not found'
-                               ], Response::HTTP_NOT_FOUND);
-        }
-
-        $this->entityManager->remove($user);
-        $this->entityManager->flush();
-
-        return $this->json([
-                               'message' => 'User deleted successfully'
-                           ]);
-    }
-
-    #[Route('/api/users/admin/users', name: 'get_all_users', methods: ['GET'])]
-    #[IsGranted('ROLE_ADMIN')]
-    public function getAllUsers(): JsonResponse
-    {
-        $users = $this->userRepository->findAll();
-        $userData = [];
-
-        foreach ($users as $user) {
-            $userData[] = [
-                'id' => $user->getId(),
-                'email' => $user->getEmail(),
-                'name' => $user->getName(),
-                'family' => $user->getFamily(),
-                'roles' => $user->getRoles(),
-                'cart' => $user->getCarts()
-            ];
-        }
-
-        return $this->json([
-                               'users' => $userData
-                           ]);
+                           ], 200, [], ['groups' => ['user:read']]);
     }
 }

@@ -8,6 +8,7 @@ use Ramsey\Uuid\UuidInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Security\User\JWTUserInterface;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Index(name: 'idx_user_email', columns: ['email'])]
 #[ORM\Entity(repositoryClass: "App\Repository\UserRepository")]
@@ -17,24 +18,30 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, JWTUser
     #[ORM\Column(type: 'uuid', unique: true)]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
     #[ORM\CustomIdGenerator(class: 'Ramsey\Uuid\Doctrine\UuidGenerator')]
+    #[Groups(['user:read'])]
     private UuidInterface $id;
 
     #[ORM\Column(type: 'string', length: 180)]
+    #[Groups(['user:read'])]
     private $name;
 
     #[ORM\Column(type: 'string', length: 180)]
+    #[Groups(['user:read'])]
     private $family;
 
     #[ORM\Column(type: 'string', length: 180, unique: true)]
+    #[Groups(['user:read'])]
     private $email;
 
     #[ORM\Column(type: 'json')]
+    #[Groups(['user:read'])]
     private $roles = [];
 
     #[ORM\Column(type: 'string')]
     private $password;
 
     #[ORM\OneToMany(targetEntity: Cart::class, mappedBy: 'user')]
+    #[Groups(['user:read'])]
     private $carts;
 
     #[ORM\OneToMany(targetEntity: Order::class, mappedBy: 'user')]
@@ -133,7 +140,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, JWTUser
     public function setShippingAddress(mixed $shipping_address)
     {
         $this->shippingAddress = $shipping_address;
-        return $this;
     }
 
     public function getUserIdentifier(): string
