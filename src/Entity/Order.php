@@ -41,5 +41,96 @@ class Order
     #[ORM\OneToOne(targetEntity: Checkout::class, mappedBy: 'order')]
     private $checkout;
 
-    // Getters and setters...
+    public function getId(): UuidInterface
+    {
+        return $this->id;
+    }
+
+    public function getUser(): User
+    {
+        return $this->user;
+    }
+
+    public function setUser(User $user): self
+    {
+        $this->user = $user;
+        return $this;
+    }
+
+    public function getCreatedAt(): \DateTime
+    {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(\DateTime $createdAt): self
+    {
+        $this->createdAt = $createdAt;
+        return $this;
+    }
+
+    public function getItemQuantities()
+    {
+        return $this->itemQuantities;
+    }
+
+    public function setItemQuantities($itemQuantities): self
+    {
+        $this->itemQuantities = $itemQuantities;
+        return $this;
+    }
+
+    public function getFinalPrice(): string
+    {
+        return $this->finalPrice;
+    }
+
+    public function setFinalPrice(string $finalPrice): self
+    {
+        $this->finalPrice = $finalPrice;
+        return $this;
+    }
+
+    public function getShippingAddress(): string
+    {
+        return $this->shippingAddress;
+    }
+
+    public function setShippingAddress(string $shippingAddress): self
+    {
+        $this->shippingAddress = $shippingAddress;
+        return $this;
+    }
+
+    public function getInvoiceAddress(): string
+    {
+        return $this->invoiceAddress;
+    }
+
+    public function setInvoiceAddress(string $invoiceAddress): self
+    {
+        $this->invoiceAddress = $invoiceAddress;
+        return $this;
+    }
+
+    public function getStatus(): OrderStatus
+    {
+        return $this->status;
+    }
+
+    public function setStatus(OrderStatus $status): self
+    {
+        $this->status = $status;
+        return $this;
+    }
+
+    public function getCheckout(): ?Checkout
+    {
+        return $this->checkout;
+    }
+
+    public function setCheckout(?Checkout $checkout): self
+    {
+        $this->checkout = $checkout;
+        return $this;
+    }
 }

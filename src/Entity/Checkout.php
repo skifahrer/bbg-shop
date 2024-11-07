@@ -40,5 +40,85 @@ class Checkout
     #[ORM\Column(type: 'string', enumType: PaymentType::class)]
     private $paymentType;
 
-    // Getters and setters...
+    public function getId(): UuidInterface
+    {
+        return $this->id;
+    }
+
+    public function getUser(): User
+    {
+        return $this->user;
+    }
+
+    public function setUser(User $user): self
+    {
+        $this->user = $user;
+        return $this;
+    }
+
+    public function getCart(): Cart
+    {
+        return $this->cart;
+    }
+
+    public function setCart(Cart $cart): self
+    {
+        $this->cart = $cart;
+        return $this;
+    }
+
+    public function getOrder(): Order
+    {
+        return $this->order;
+    }
+
+    public function setOrder(Order $order): self
+    {
+        $this->order = $order;
+        return $this;
+    }
+
+    public function getCreatedAt(): \DateTime
+    {
+        return $this->createdAt;
+    }
+
+    public function setCreatedAt(\DateTime $createdAt): self
+    {
+        $this->createdAt = $createdAt;
+        return $this;
+    }
+
+    public function getShippingAddress(): string
+    {
+        return $this->shippingAddress;
+    }
+
+    public function setShippingAddress(string $shippingAddress): self
+    {
+        $this->shippingAddress = $shippingAddress;
+        return $this;
+    }
+
+    public function getInvoiceAddress(): string
+    {
+        return $this->invoiceAddress;
+    }
+
+    public function setInvoiceAddress(string $invoiceAddress): self
+    {
+        $this->invoiceAddress = $invoiceAddress;
+        return $this;
+    }
+
+    public function getPaymentType(): PaymentType
+    {
+        return $this->paymentType;
+    }
+
+    public function setPaymentType(PaymentType $paymentType): self
+    {
+        $this->paymentType = $paymentType;
+        return $this;
+    }
 }

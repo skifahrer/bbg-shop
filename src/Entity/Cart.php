@@ -25,5 +25,41 @@ class Cart
     #[ORM\OneToOne(targetEntity: Checkout::class, mappedBy: 'cart')]
     private $checkout;
 
-    // Getters and setters...
+    public function getId(): UuidInterface
+    {
+        return $this->id;
+    }
+
+    public function getUser(): User
+    {
+        return $this->user;
+    }
+
+    public function setUser(User $user): self
+    {
+        $this->user = $user;
+        return $this;
+    }
+
+    public function getItemQuantities()
+    {
+        return $this->itemQuantities;
+    }
+
+    public function setItemQuantities($itemQuantities): self
+    {
+        $this->itemQuantities = $itemQuantities;
+        return $this;
+    }
+
+    public function getCheckout(): ?Checkout
+    {
+        return $this->checkout;
+    }
+
+    public function setCheckout(?Checkout $checkout): self
+    {
+        $this->checkout = $checkout;
+        return $this;
+    }
 }
