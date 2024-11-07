@@ -15,23 +15,56 @@ class ProductRepository extends ServiceEntityRepository
         parent::__construct($registry, Product::class);
     }
 
+    private function createSearchQueryBuilder(string $search = '', string $locale = 'en'): QueryBuilder
+    {
+        $qb = $this->createQueryBuilder('p');
+
+        if ($search) {
+            // Map locale to entity field name
+            $titleField = match($locale) {
+                'sk' => 'title_sk',
+                'sl' => 'title_sl',
+                'hu' => 'title_hu',
+                'hr' => 'title_hr',
+                'ro' => 'title_ro',
+                'bg' => 'title_bg',
+                default => 'title_en'
+            };
+
+            $qb->where("LOWER(p.{$titleField}) LIKE LOWER(:search)")
+                ->orWhere('LOWER(p.item) LIKE LOWER(:search)')
+                ->setParameter('search', '%' . strtolower($search) . '%');
+        }
+
+        return $qb;
+    }
+
+    public function findBySearchPaginated(string $search, int $page, int $limit, string $locale = 'en'): array
+    {
+        $qb = $this->createSearchQueryBuilder($search, $locale)
+            ->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit);
+
+        $paginator = new Paginator($qb->getQuery());
+        return $paginator->getIterator()->getArrayCopy();
+    }
+
+    public function countBySearch(string $search, string $locale = 'en'): int
+    {
+        $qb = $this->createSearchQueryBuilder($search, $locale)
+            ->select('COUNT(p.id)');
+
+        return $qb->getQuery()->getSingleScalarResult();
+    }
+
     public function findAllPaginated(int $page, int $limit): array
     {
-        $query = $this->createQueryBuilder('p')
-            ->setFirstResult(($page - 1) * $limit)
-            ->setMaxResults($limit)
-            ->getQuery();
-
-        $paginator = new Paginator($query);
-        return $paginator->getIterator()->getArrayCopy();
+        return $this->findBySearchPaginated('', $page, $limit);
     }
 
     public function countAll(): int
     {
-        return $this->createQueryBuilder('p')
-            ->select('COUNT(p.id)')
-            ->getQuery()
-            ->getSingleScalarResult();
+        return $this->countBySearch('');
     }
 
     public function getProductData(Product $product): array

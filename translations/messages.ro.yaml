@@ -64,3 +64,7 @@ language:
     hr: 'Croată'
     ro: 'Română'
     bg: 'Bulgară'
+search:
+    button: 'Căutare'
+    placeholder: 'Căutare...'
+    results: 'Rezultate'

@@ -35,6 +35,8 @@
 
             if (data.jwt) {
                 sessionStorage.setItem('jwt', data.jwt);
+
+
                 console.log('Success:', data);
                 document.getElementById('error-message').textContent = '';
                 document.getElementById('success-message').textContent = '{{ 'login.success'|trans }}!';

@@ -1,4 +1,17 @@
 <div id="productBookshelf" class="container" data-locale="{{ app.request.locale }}">
+    <!-- Search Bar -->
+    <div class="row mt-4">
+        <div class="col-md-6 offset-md-3">
+            <div class="input-group">
+                <input type="text"
+                       id="searchInput"
+                       class="form-control"
+                       placeholder="{{ 'search.placeholder'|trans }}"
+                       aria-label="{{ 'search.label'|trans }}">
+            </div>
+        </div>
+    </div>
+
     <div class="pagination-controls mt-4">
         <nav aria-label="Product navigation">
             <ul class="pagination justify-content-center">
@@ -46,10 +59,15 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const productGrid = document.querySelector('.product-grid');
-        const prevPageBtn = document.getElementById('prevPage');
-        const nextPageBtn = document.getElementById('nextPage');
+        const prevPageButtons = document.querySelectorAll('#prevPage');
+        const nextPageButtons = document.querySelectorAll('#nextPage');
         const modalElement = document.getElementById('productModal');
+        const searchInput = document.getElementById('searchInput');
+        //const searchButton = document.getElementById('searchButton');
         let productModal = null;
+        let currentPage = 1;
+        const limit = 8;
+        let currentSearch = '';
 
         // Initialize Bootstrap modal
         if (typeof bootstrap !== 'undefined') {
@@ -58,7 +76,6 @@
                 backdrop: true
             });
 
-            // Add modal event listeners for debugging
             modalElement.addEventListener('shown.bs.modal', function () {
                 console.log('Modal shown');
             });
@@ -70,11 +87,14 @@
             console.error('Bootstrap is not loaded!');
         }
 
-        let currentPage = 1;
-        const limit = 8;
+        function getCurrentLocale() {
+            const productBookshelf = document.getElementById('productBookshelf');
+            return (productBookshelf.dataset.locale || 'en').toLowerCase();
+        }
 
-        function loadProducts(page) {
-            fetch(`/api/products?page=${page}&limit=${limit}`)
+        function loadProducts(page, search = '') {
+            const locale = getCurrentLocale();
+            fetch(`/api/products?page=${page}&limit=${limit}&search=${encodeURIComponent(search)}&locale=${locale}`)
                 .then(response => response.json())
                 .then(data => {
                     currentPage = data.currentPage;
@@ -86,22 +106,14 @@
 
         function displayProducts(products) {
             productGrid.innerHTML = '';
+            const currentLocale = getCurrentLocale();
 
             products.forEach(product => {
                 const productCard = document.createElement('div');
                 productCard.classList.add('col-md-6', 'col-lg-3', 'mb-4');
 
-                const currentLocale = document.getElementById('productBookshelf').dataset.locale;
-                const browserLang = (currentLocale || 'en').toLowerCase();
-                const langKey = browserLang.charAt(0).toUpperCase() + browserLang.slice(1);
-                const titleKey = `title${langKey}`;
-
-                let productTitle = '';
-                if (product[titleKey]) {
-                    productTitle = product[titleKey];
-                } else {
-                    productTitle = 'Title not available';
-                }
+                const titleKey = `title${currentLocale.charAt(0).toUpperCase() + currentLocale.slice(1)}`;
+                let productTitle = product[titleKey] || 'Title not available';
 
                 productCard.innerHTML = `
                     <div class="product-card" data-product-id="${product.id}">
@@ -123,8 +135,35 @@
         }
 
         function updatePaginationButtons(currentPage, totalPages) {
-            prevPageBtn.disabled = currentPage <= 1;
-            nextPageBtn.disabled = currentPage >= totalPages;
+            prevPageButtons.forEach(button => {
+                button.disabled = currentPage <= 1;
+            });
+            nextPageButtons.forEach(button => {
+                button.disabled = currentPage >= totalPages;
+            });
+        }
+
+        // Search functionality
+        function handleSearch() {
+            currentSearch = searchInput.value.trim();
+            if (currentSearch.length < 2) {
+                return; // Do not search if less than 2 characters
+            }
+            currentPage = 1;
+            loadProducts(currentPage, currentSearch);
+        }
+
+        // Debounce function to limit API calls
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
         }
 
         function showProductDetails(productId) {
@@ -201,15 +240,33 @@
         }
 
         // Event Listeners
-        prevPageBtn.addEventListener('click', () => {
-            if (currentPage > 1) {
-                loadProducts(currentPage - 1);
-            }
+        prevPageButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                if (currentPage > 1) {
+                    loadProducts(currentPage - 1, currentSearch);
+                }
+            });
         });
 
-        nextPageBtn.addEventListener('click', () => {
-            loadProducts(currentPage + 1);
-        });333
+        nextPageButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                loadProducts(currentPage + 1, currentSearch);
+            });
+        });
+
+        // Add search event listeners
+        //searchButton.addEventListener('click', handleSearch);
+
+        // Debounced search for input typing
+        const debouncedSearch = debounce(handleSearch, 500);
+        searchInput.addEventListener('input', debouncedSearch);
+
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                handleSearch();
+            }
+        });
 
         productGrid.addEventListener('click', (e) => {
             const productCard = e.target.closest('.product-card');
@@ -227,6 +284,6 @@
         });
 
         // Initial load
-        loadProducts(currentPage);
+        loadProducts(currentPage, currentSearch);
     });
 </script>

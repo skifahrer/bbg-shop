@@ -64,3 +64,7 @@ language:
     hr: 'Croatian'
     ro: 'Romanian'
     bg: 'Bulgarian'
+search:
+    button: 'Search'
+    placeholder: 'Search...'
+    results: 'Results'

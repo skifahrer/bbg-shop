@@ -64,3 +64,7 @@ language:
     hr: 'Chorvátčina'
     ro: 'Rumunčina'
     bg: 'Bulharčina'
+search:
+    button: 'Hľadať'
+    placeholder: 'Hľadať...'
+    results: 'Výsledky'

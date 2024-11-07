@@ -32,9 +32,11 @@ class ProductController extends AbstractController
     {
         $page = $request->query->getInt('page', 1);
         $limit = $request->query->getInt('limit', 10);
+        $search = $request->query->get('search', '');
+        $locale = $request->query->get('locale', 'en');
 
-        $products = $productRepository->findAllPaginated($page, $limit);
-        $totalProducts = $productRepository->countAll();
+        $products = $productRepository->findBySearchPaginated($search, $page, $limit, $locale);
+        $totalProducts = $productRepository->countBySearch($search, $locale);
 
         return $this->json([
                                'products' => $products,

@@ -204,3 +204,7 @@ strong {
     margin: 0.5em;
     border:0;
 }
+
+.page-link{
+    cursor: pointer;
+}

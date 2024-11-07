@@ -64,3 +64,7 @@ language:
     hr: 'Horvát'
     ro: 'Román'
     bg: 'Bolgár'
+search:
+    button: 'Keresés'
+    placeholder: 'Keresés...'
+    results: 'Eredmények'

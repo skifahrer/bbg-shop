@@ -64,3 +64,7 @@ language:
     hr: 'Hrvatski'
     ro: 'Rumunski'
     bg: 'Bugarski'
+search:
+    button: 'Pretraži'
+    placeholder: 'Pretraži...'
+    results: 'Rezultati'
