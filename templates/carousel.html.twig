@@ -1,3 +1,135 @@
 <div id="myCarousel" class="carousel slide" data-ride="carousel">
-
+    <div class="carousel-inner">
+    </div>
+    <a class="carousel-control-prev" href="#myCarousel" role="button" data-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="sr-only">Previous</span>
+    </a>
+    <a class="carousel-control-next" href="#myCarousel" role="button" data-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="sr-only">Next</span>
+    </a>
+    <div class="carousel-pagination">
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+            </ul>
+        </nav>
+    </div>
 </div>
+
+<div class="modal fade" id="productModal" tabindex="-1" role="dialog" aria-labelledby="productModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="productModalLabel"></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Product details will be dynamically inserted here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const carousel = document.getElementById('myCarousel');
+        const carouselInner = carousel.querySelector('.carousel-inner');
+        const paginationContainer = carousel.querySelector('.carousel-pagination .pagination');
+        const productModal = document.getElementById('productModal');
+
+        let currentPage = 1;
+        const limit = 10;
+
+        function loadProducts(page) {
+            fetch(`/api/products?page=${page}&limit=${limit}`)
+                .then(response => response.json())
+                .then(data => {
+                    currentPage = data.currentPage;
+                    const totalPages = data.totalPages;
+
+                    carouselInner.innerHTML = '';
+                    paginationContainer.innerHTML = '';
+
+                    data.products.forEach((product, index) => {
+                        const carouselItem = document.createElement('div');
+                        carouselItem.classList.add('carousel-item');
+                        if (index === 0) {
+                            carouselItem.classList.add('active');
+                        }
+                        carouselItem.innerHTML = `
+                        <div class="d-flex justify-content-center">
+                            <img src="{{ asset('images/product.jpeg') }}" alt="${product.title_en}" class="d-block w-30">
+                        </div>
+                        <div class="carousel-caption d-none d-md-block">
+                            <h5>${product.title_en}</h5>
+                            <p>Price: ${product.oxprice}</p>
+                            <p>Stock: ${product.stock}</p>
+                            <a href="#" class="btn btn-primary" data-product-id="${product.id}">View Details</a>
+                        </div>
+                    `;
+                        carouselInner.appendChild(carouselItem);
+                    });
+
+                    for (let i = 1; i <= totalPages; i++) {
+                        const pageLink = document.createElement('li');
+                        pageLink.classList.add('page-item');
+                        if (i === currentPage) {
+                            pageLink.classList.add('active');
+                        }
+                        pageLink.innerHTML = `<a class="page-link" href="#" data-page="${i}">${i}</a>`;
+                        paginationContainer.appendChild(pageLink);
+                    }
+                });
+        }
+
+        loadProducts(currentPage);
+
+        carousel.addEventListener('click', function(e) {
+            if (e.target.classList.contains('btn-primary')) {
+                const productId = e.target.dataset.productId;
+                showProductDetails(productId);
+            }
+        });
+
+        carousel.addEventListener('click', function(e) {
+            if (e.target.classList.contains('page-link')) {
+                e.preventDefault();
+                const page = e.target.dataset.page;
+                loadProducts(page);
+            }
+        });
+
+        function showProductDetails(productId) {
+            fetch(`/api/products/${productId}`)
+                .then(response => response.json())
+                .then(data => {
+                    const modal = document.getElementById('productModal');
+                    const modalTitle = modal.querySelector('.modal-title');
+                    const modalBody = modal.querySelector('.modal-body');
+
+                    modalTitle.textContent = data.title_en;
+                    modalBody.innerHTML = `
+                    <p>Item: ${data.item}</p>
+                    <p>Price: ${data.oxprice}</p>
+                    <p>Weight: ${data.weight}</p>
+                    <p>Stock: ${data.stock}</p>
+                    <p>Length: ${data.length}</p>
+                    <p>Width: ${data.width}</p>
+                    <p>Height: ${data.height}</p>
+                    <p>Title (SK): ${data.title_sk}</p>
+                    <p>Title (SL): ${data.title_sl}</p>
+                    <p>Title (HU): ${data.title_hu}</p>
+                    <p>Title (HR): ${data.title_hr}</p>
+                    <p>Title (RO): ${data.title_ro}</p>
+                    <p>Title (BG): ${data.title_bg}</p>
+                    <p>Features: ${data.features_json}</p>
+                `;
+
+                    $(modal).modal('show');
+                });
+        }
+    });
+</script>
