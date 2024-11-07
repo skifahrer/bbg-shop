@@ -16,7 +16,7 @@ class UserRepository extends ServiceEntityRepository
 
     public function findOneByEmailForAuth(string $email): array
     {
-        return $this->createQueryBuilder('u')
+        $res = $this->createQueryBuilder('u')
             ->select(
                 'u.id',
                 'u.email',
@@ -25,6 +25,12 @@ class UserRepository extends ServiceEntityRepository
             ->where('u.email = :email')
             ->setParameter('email', $email)
             ->getQuery()
-            ->getOneOrNullResult( );
+            ->getOneOrNullResult();
+
+        if (!$res) {
+            return [];
+        }
+
+        return $res;
     }
 }

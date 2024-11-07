@@ -56,7 +56,14 @@ class AuthController extends AbstractController
 
         $userArray = $userRepository->findOneByEmailForAuth($data['email']);
 
-        if (!$userArray || !($userArray['password'] == $data['password'])) {
+        if (!$userArray) {
+            return new JsonResponse(
+                ['error' => 'User not exists.'],
+                Response::HTTP_NOT_FOUND
+            );
+        }
+
+        if (!($userArray['password'] == $data['password'])) {
             return new JsonResponse(
                 ['error' => 'Invalid credentials.'],
                 Response::HTTP_UNAUTHORIZED
