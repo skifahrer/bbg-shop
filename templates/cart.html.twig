@@ -3,7 +3,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="cartModalLabel">{{ 'cart.your_cart'|trans }}</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="border: 0;">&times;</button>
+                <button type="button" class="btn-close2" data-bs-dismiss="modal" aria-label="Close" style="border: 0;">&times;</button>
             </div>
             <div class="modal-body">
                 <div id="cartContent">
@@ -46,7 +46,14 @@
         document.querySelector('#cart .nav-link').appendChild(cartBadge);
 
         function updateCart() {
-            fetch('/api/cart')
+            const token = sessionStorage.getItem('jwt');
+            if (!token) return;
+
+            fetch('/api/cart',{
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            })
                 .then(response => response.json())
                 .then(data => {
                     updateCartBadge(data.items_count);
@@ -108,10 +115,13 @@
         }
 
         window.updateQuantity = function(productId, quantity) {
+            const token = sessionStorage.getItem('jwt');
+            if (!token) return;
             fetch('/api/cart/update', {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify({
                     product_id: productId,
@@ -134,7 +144,7 @@
         });
 
         // Manual close button handler
-        document.querySelector('.btn-close').addEventListener('click', () => {
+        document.querySelector('.btn-close2').addEventListener('click', () => {
             if (cartModal) {
                 cartModal.hide();
             }
