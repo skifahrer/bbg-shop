@@ -36,7 +36,6 @@ class ProductController extends AbstractController
         $products = $productRepository->findAllPaginated($page, $limit);
         $totalProducts = $productRepository->countAll();
 
-
         return $this->json([
                                'products' => $products,
                                'totalProducts' => $totalProducts,
@@ -48,6 +47,6 @@ class ProductController extends AbstractController
     #[Route('/{id}', name: 'get', methods: ['GET'])]
     public function get(Product $product, ProductRepository $productRepository): JsonResponse
     {
-        return $this->json($this->$productRepository->getProductData($product));
+        return $this->json($productRepository->getProductData($product));
     }
 }
