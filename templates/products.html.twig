@@ -16,14 +16,24 @@
     </div>
 </div>
 
-<!-- Keep your existing modal code -->
+<!-- Updated modal code -->
 <div class="modal fade" id="productModal" tabindex="-1" role="dialog" aria-labelledby="productModalLabel" aria-hidden="true">
-    <!-- Your existing modal content -->
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="productModalLabel">Product Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Content will be dynamically inserted here -->
+            </div>
+        </div>
+    </div>
 </div>
 
 <style>
     #productBookshelf {
-        padding-top: 80px; /* You can adjust this value based on your menu bar height */
+        padding-top: 80px;
     }
 
     .product-card {
@@ -67,6 +77,33 @@
         text-overflow: ellipsis;
         max-width: 100%;
     }
+
+    /* New modal styles */
+    .modal-content {
+        background-color: white;
+        color: #333;
+    }
+
+    .modal-body img {
+        max-width: 100%;
+        height: auto;
+        object-fit: contain;
+    }
+
+    .product-properties {
+        padding: 20px;
+    }
+
+    .product-properties p {
+        margin-bottom: 10px;
+    }
+
+    .json-properties {
+        background-color: #f8f9fa;
+        padding: 15px;
+        border-radius: 5px;
+        white-space: pre-wrap;
+    }
 </style>
 
 <script>
@@ -95,13 +132,11 @@
                 const productCard = document.createElement('div');
                 productCard.classList.add('col-md-6', 'col-lg-3', 'mb-4');
 
-                // Get browser language and capitalize first letter
                 const currentLocale = document.getElementById('productBookshelf').dataset.locale;
                 const browserLang = (currentLocale || 'en').toLowerCase();
                 const langKey = browserLang.charAt(0).toUpperCase() + browserLang.slice(1);
                 const titleKey = `title${langKey}`;
 
-                // Get the title with proper error handling
                 let productTitle = '';
                 if (product[titleKey]) {
                     productTitle = product[titleKey];
@@ -135,6 +170,61 @@
             nextPageBtn.disabled = currentPage >= totalPages;
         }
 
+        function formatJSON(jsonString) {
+            try {
+                const obj = JSON.parse(jsonString);
+                return JSON.stringify(obj, null, 2);
+            } catch (e) {
+                return jsonString;
+            }
+        }
+
+        function showProductDetails(productId) {
+            fetch(`/api/products/${productId}`)
+                .then(response => response.json())
+                .then(data => {
+                    const modalBody = document.querySelector('#productModal .modal-body');
+                    const currentLocale = document.getElementById('productBookshelf').dataset.locale;
+                    const browserLang = (currentLocale || 'en').toLowerCase();
+                    const langKey = browserLang.charAt(0).toUpperCase() + browserLang.slice(1);
+                    const languageCode = langKey || 'en';
+
+                    let productTitle = "";
+                    if (data[languageCode]) {
+                        productTitle = data[languageCode];
+                    } else if (data.titleEn) {
+                        productTitle = data.titleEn;
+                    } else {
+                        productTitle = 'Title not available';
+                    }
+
+                    modalBody.innerHTML = `
+                        <div class="row">
+                            <div class="col-md-6">
+                                <img src="${data.image || '{{ asset("images/product.jpeg") }}'}"
+                                     class="img-fluid" alt="${productTitle}">
+                            </div>
+                            <div class="col-md-6 product-properties">
+                                <h4>${productTitle}</h4>
+                                <p><strong>Item:</strong> ${data.item}</p>
+                                <p><strong>Price:</strong> ${data.oxprice} €</p>
+                                <p><strong>Stock:</strong> ${data.stock}</p>
+                                <p><strong>Dimensions:</strong> ${data.length}x${data.width}x${data.height}</p>
+                                <p><strong>Weight:</strong> ${data.weight}</p>
+                                ${data.features_json ? `
+                                    <div class="json-properties">
+                                        <strong>Features:</strong>
+                                        <pre>${formatJSON(data.features_json)}</pre>
+                                    </div>` : ''}
+                            </div>
+                        </div>
+                    `;
+
+                    const modal = new bootstrap.Modal(document.getElementById('productModal'));
+                    modal.show();
+                });
+        }
+
         // Event Listeners
         prevPageBtn.addEventListener('click', () => {
             if (currentPage > 1) {
@@ -153,49 +243,6 @@
                 showProductDetails(productId);
             }
         });
-
-        function showProductDetails(productId) {
-            fetch(`/api/products/${productId}`)
-                .then(response => response.json())
-                .then(data => {
-                    const modal = document.getElementById('productModal');
-
-                    const currentLocale = document.getElementById('productBookshelf').dataset.locale;
-                    const browserLang = (currentLocale || 'en').toLowerCase();
-                    const langKey = browserLang.charAt(0).toUpperCase() + browserLang.slice(1);
-                    const languageCode = langKey || 'en';
-
-                    let productTitle = "";
-                    if (data[languageCode]) {
-                        productTitle = data[languageCode];
-                    } else if (data.titleEn) {
-                        productTitle = data.titleEn;
-                    } else {
-                        productTitle = 'Title not available';
-                    }
-
-                    modal.innerHTML = `
-                        <div class="row">
-                            <div class="col-md-6">
-                                <img src="${data.image || '{{ asset("images/product.jpeg") }}'}"
-                                     class="img-fluid" alt="${productTitle}">
-                            </div>
-                            <div class="col-md-6">
-                                <p><strong>Item:</strong> ${data.item}</p>
-                                <p><strong>Price:</strong> ${data.oxprice}</p>
-                                <p><strong>Stock:</strong> ${data.stock}</p>
-                                <p><strong>Dimensions:</strong> ${data.length}x${data.width}x${data.height}</p>
-                                <p><strong>Weight:</strong> ${data.weight}</p>
-                                ${data.features_json ? `<p><strong>Features:</strong> ${data.features_json}</p>` : ''}
-                            </div>
-                        </div>
-                    `;
-
-                    // Bootstrap 5 modal initialization
-                    const bootstrapModal = new bootstrap.Modal(modal);
-                    bootstrapModal.show();
-                });
-        }
 
         // Initial load
         loadProducts(currentPage);
