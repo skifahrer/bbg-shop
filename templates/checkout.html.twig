@@ -75,18 +75,14 @@
                         <h4>{{ 'checkout.payment_method'|trans }}</h4>
                     </div>
                     <div class="card-body">
-                        <div class="form-check mb-2">
-                            <input class="form-check-input" type="radio" name="paymentType" id="paymentCard" value="card" checked>
-                            <label class="form-check-label" for="paymentCard">
-                                {{ 'checkout.payment_card'|trans }}
-                            </label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="radio" name="paymentType" id="paymentBank" value="bank_transfer">
-                            <label class="form-check-label" for="paymentBank">
-                                {{ 'checkout.payment_bank'|trans }}
-                            </label>
-                        </div>
+                        {% for paymentType in paymentTypes %}
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="paymentType" id="payment{{ paymentType.value|capitalize }}" value="{{ paymentType.value }}" {% if loop.first %}checked{% endif %}>
+                                <label class="form-check-label" for="payment{{ paymentType.value|capitalize }}">
+                                    {{ ('checkout.payment_' ~ paymentType.value)|trans }}
+                                </label>
+                            </div>
+                        {% endfor %}
                     </div>
                 </div>
             </div>
@@ -113,6 +109,8 @@
     </div>
 
     <script>
+        // Validate checkout before placing order
+
         document.addEventListener('DOMContentLoaded', function() {
             let currentCheckoutId = null;
 
@@ -192,9 +190,14 @@
                     return;
                 }
 
-                const token = sessionStorage.getItem('jwt');
+                if (!validateCheckout()) {
+                    return;
+                }
 
-                fetch(`/api/checkout/${currentCheckoutId}/place-order`, {
+                const token = sessionStorage.getItem('jwt');
+                const locale = getCurrentLocale();
+
+                fetch(`/api/checkout/${currentCheckoutId}/place-order?locale=${locale}`, {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`
@@ -204,7 +207,7 @@
                     .then(data => {
                         if (data.order_id) {
                             showAlert('success', data.message);
-                            window.location.href = `/${getCurrentLocale()}/order/${data.order_id}`;
+                            window.location.href = `/${locale}/orders/${data.order_id}`;
                         } else {
                             showAlert('danger', data.error || 'Failed to place order');
                         }
@@ -256,6 +259,36 @@
                 document.getElementById('checkoutTotal').textContent = `${data.total_amount.toFixed(2)} €`;
             }
 
+            function validateCheckout() {
+                const shippingForm = document.getElementById('shippingAddressForm');
+                const invoiceForm = document.getElementById('invoiceAddressForm');
+                const sameAsShipping = document.getElementById('sameAsShipping');
+
+                // Check shipping form
+                const shippingInputs = shippingForm.querySelectorAll('input[required]');
+                for (let input of shippingInputs) {
+                    if (!input.value.trim()) {
+                        showAlert('danger', 'Please fill out all shipping address fields');
+                        input.focus();
+                        return false;
+                    }
+                }
+
+                // Check invoice form if not same as shipping
+                if (!sameAsShipping.checked) {
+                    const invoiceInputs = invoiceForm.querySelectorAll('input[required]');
+                    for (let input of invoiceInputs) {
+                        if (!input.value.trim()) {
+                            showAlert('danger', 'Please fill out all invoice address fields');
+                            input.focus();
+                            return false;
+                        }
+                    }
+                }
+
+                return true;
+            }
+
             function showAlert(type, message) {
                 const alertDiv = document.createElement('div');
                 alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
@@ -295,6 +328,8 @@
             });
 
             document.getElementById('placeOrderBtn').addEventListener('click', placeOrder);
+
+
 
             // Initialize checkout on page load
             initCheckout();

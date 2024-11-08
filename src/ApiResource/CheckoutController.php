@@ -171,9 +171,13 @@ class CheckoutController extends AbstractController
         }
     }
 
-    public function placeOrder(#[CurrentUser] User $user, string $id): JsonResponse
+    public function placeOrder(#[CurrentUser] User $user, string $id, Request $request): JsonResponse
     {
         $checkout = $this->checkoutRepository->find($id);
+
+        if ($checkout->getOrder()) {
+            return $this->json(['error' => 'Order already placed for checkout'], Response::HTTP_BAD_REQUEST);
+        }
 
         if (!$checkout) {
             return $this->json(['error' => 'Checkout not found'], Response::HTTP_NOT_FOUND);
@@ -181,6 +185,14 @@ class CheckoutController extends AbstractController
 
         if ($checkout->getUser()->getId() !== $user->getId()) {
             return $this->json(['error' => 'Access denied'], Response::HTTP_FORBIDDEN);
+        }
+
+        if (!$checkout->getShippingAddress()) {
+            return $this->json(['error' => 'Shipping address is required'], Response::HTTP_BAD_REQUEST);
+        }
+
+        if (!$checkout->getInvoiceAddress()) {
+            return $this->json(['error' => 'Invoice address is required'], Response::HTTP_BAD_REQUEST);
         }
 
         $cart = $checkout->getCart();
@@ -206,6 +218,8 @@ class CheckoutController extends AbstractController
             $order->setUser($user);
             $order->setStatus(OrderStatus::PENDING);
             $order->setCreatedAt(new \DateTime());
+            $order->setShippingAddress($checkout->getShippingAddress());
+            $order->setInvoiceAddress($checkout->getInvoiceAddress());
 
             $totalAmount = 0;
 
@@ -245,15 +259,15 @@ class CheckoutController extends AbstractController
         }
     }
 
-    public function getCheckout(#[CurrentUser] User $user, string $id): JsonResponse
+    public function getCheckout(#[CurrentUser] User $user, string $id, Request $request): JsonResponse
     {
+        $locale = $request->query->get('locale', 'en');
         $checkout = $this->checkoutRepository->find($id);
 
         if (!$checkout) {
             return $this->json(['error' => 'Checkout not found'], Response::HTTP_NOT_FOUND);
         }
 
-        // Ensure the checkout belongs to the current user
         if ($checkout->getUser()->getId() !== $user->getId()) {
             return $this->json(['error' => 'Access denied'], Response::HTTP_FORBIDDEN);
         }
@@ -274,7 +288,7 @@ class CheckoutController extends AbstractController
 
             $items[] = [
                 'id' => $product->getId(),
-                'title' => $product->getLocalizedTitle('en'), // You might want to make this configurable
+                'title' => $product->getLocalizedTitle($locale), // You might want to make this configurable
                 'price' => $product->getOxprice(),
                 'quantity' => $itemQuantity->getQuantity(),
                 'amount' => $amount
