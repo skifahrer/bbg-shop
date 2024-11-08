@@ -47,8 +47,10 @@ class CartController extends AbstractController
         private ProductRepository $productRepository
     ) {}
 
-    public function getCart(#[CurrentUser] User $user): JsonResponse
+    public function getCart(#[CurrentUser] User $user,  Request $request): JsonResponse
     {
+        $locale = $request->query->get('locale', 'en');
+
         $activeCart = $this->cartRepository->findActiveCartByUser($user);
 
         if (!$activeCart) {
@@ -68,7 +70,7 @@ class CartController extends AbstractController
 
             $items[] = [
                 'id' => $product->getId(),
-                'title' => $product->getTitleEn(), // You might want to make this dynamic based on locale
+                'title' => $product->getLocalizedTitle($locale),
                 'price' => $product->getOxprice(),
                 'quantity' => $itemQuantity->getQuantity(),
                 'amount' => $amount

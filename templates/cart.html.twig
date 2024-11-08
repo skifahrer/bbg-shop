@@ -47,7 +47,9 @@
             const token = sessionStorage.getItem('jwt');
             if (!token) return;
 
-            fetch('/api/cart',{
+            const locale = getCurrentLocale();
+
+            fetch(`/api/cart?locale=${locale}`,{
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -85,7 +87,7 @@
                 row.innerHTML = `
                     <td>
                         <div class="d-flex align-items-center">
-                            <img src="${item.image}" alt="${item.title}" style="width: 50px; height: 50px; object-fit: cover" class="me-2">
+                            <img src="/images/product.jpeg" alt="${item.title}" style="width: 50px; height: 50px; object-fit: cover" class="me-2">
                             <span>${item.title}</span>
                         </div>
                     </td>
