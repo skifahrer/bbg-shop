@@ -87,7 +87,7 @@
                 </div>
             </div>
 
-            <div class="col-md-4">
+            <div class="col-md-4" id="summary">
                 <div class="card">
                     <div class="card-header">
                         <h4>{{ 'checkout.order_summary'|trans }}</h4>
@@ -96,6 +96,8 @@
                         <div id="checkoutItems">
                             <!-- Items will be inserted here -->
                         </div>
+
+                        <button class="btn btn-secondary" id="edit-cart" data-bs-toggle="modal" data-bs-target="#cartModal">{{ 'common.edit'|trans }}</button>
                         <hr>
                         <div class="d-flex justify-content-between mb-2">
                             <strong>{{ 'checkout.total'|trans }}:</strong>
@@ -293,10 +295,11 @@
                 const alertDiv = document.createElement('div');
                 alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
                 alertDiv.innerHTML = `
-            ${message}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        `;
-                document.querySelector('.container').insertBefore(alertDiv, document.querySelector('.row'));
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                `;
+                const container = document.querySelector('.container');
+                container.insertAdjacentElement('afterbegin', alertDiv);
                 setTimeout(() => alertDiv.remove(), 5000);
             }
 
@@ -329,7 +332,18 @@
 
             document.getElementById('placeOrderBtn').addEventListener('click', placeOrder);
 
+            document.querySelector('#edit-cart').addEventListener('click', function(e) {
+                const cartModal = new bootstrap.Modal(document.getElementById('cartModal'));
 
+                document.querySelector('.btn-close2').addEventListener('click', () => {
+                    if (cartModal) {
+                        cartModal.hide();
+                    }
+                });
+
+                e.preventDefault();
+                cartModal.show();
+            });
 
             // Initialize checkout on page load
             initCheckout();

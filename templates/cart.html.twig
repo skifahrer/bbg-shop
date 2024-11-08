@@ -28,7 +28,10 @@
                     </div>
                 </div>
                 <div id="emptyCartMessage" class="text-center p-4">
-                    <p>{{ 'cart.empty'|trans }} <a href="{{ path('app_login', {'_locale': app.request.locale}) }}">{{ 'auth.login'|trans }}</a></p>
+                    <p>{{ 'cart.empty'|trans }}</p>
+                </div>
+                <div id="cartLogin" class="text-center p-4">
+                    <p><a href="{{ path('app_login', {'_locale': app.request.locale}) }}">{{ 'auth.login'|trans }}</a></p>
                 </div>
             </div>
             <div class="modal-footer">
@@ -39,10 +42,23 @@
 </div>
 
 <script>
+
+    function checkPaths(data) {
+        // Check if the current path is /checkout
+        if (window.location.pathname.includes('/checkout')) {
+            // Redirect to the home page if the cart is empty
+            if (data.items.length === 0) {
+                const locale = getCurrentLocale();
+                window.location.href = `/${locale}`;
+            }
+        }
+    }
+
     function updateCart() {
         const token = sessionStorage.getItem('jwt');
         if (!token) {
             document.getElementById('emptyCartMessage').style.display = 'block';
+            document.getElementById('cartLogin').style.display = 'block';
             document.getElementById('cartTable').style.display = 'none';
             document.getElementById('cartTotal').style.display = 'none !important';
             document.getElementById('proceedToCheckout').style.display = 'none';
@@ -60,6 +76,7 @@
             .then(data => {
                 updateCartBadge(data.total_amount);
                 updateCartModal(data);
+                checkPaths(data);
             })
             .catch(error => console.error('Error fetching cart:', error));
     }
@@ -72,6 +89,7 @@
     function updateCartModal(cartData) {
         const cartItems = document.getElementById('cartItems');
         const emptyCartMessage = document.getElementById('emptyCartMessage');
+        const cartLogin = document.getElementById('cartLogin');
         const cartTable = document.getElementById('cartTable');
         const cartTotal = document.getElementById('cartTotal');
         const cartTotalAmount = document.getElementById('cartTotalAmount');
@@ -79,6 +97,7 @@
 
         if (cartData.items.length === 0) {
             emptyCartMessage.style.display = 'block';
+            cartLogin.style.display = 'none';
             cartTable.style.display = 'none';
             cartTotal.style.display = 'none';
             proceedToCheckout.style.display = 'none';
@@ -86,6 +105,7 @@
         }
 
         emptyCartMessage.style.display = 'none';
+        cartLogin.style.display = 'none';
         cartTable.style.display = 'block';
         cartTotal.style.display = 'block';
         proceedToCheckout.style.display = 'block';
