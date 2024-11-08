@@ -9,6 +9,7 @@ use App\Entity\Checkout;
 use App\Entity\Order;
 use App\Entity\User;
 use App\Enum\PaymentType;
+use App\Enum\OrderStatus;
 use App\Repository\CartRepository;
 use App\Repository\CheckoutRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -203,12 +204,15 @@ class CheckoutController extends AbstractController
             // Create new order
             $order = new Order();
             $order->setUser($user);
-            $order->setStatus('pending');
+            $order->setStatus(OrderStatus::PENDING);
             $order->setCreatedAt(new \DateTime());
+
+            $totalAmount = 0;
 
             // Transfer items from cart to order and update stock
             foreach ($cart->getItemQuantities() as $itemQuantity) {
                 $product = $itemQuantity->getProduct();
+                $totalAmount += $product->getOxprice() * $itemQuantity->getQuantity();
 
                 // Update product stock
                 $product->setStock($product->getStock() - $itemQuantity->getQuantity());
@@ -218,6 +222,9 @@ class CheckoutController extends AbstractController
                 $itemQuantity->setOrder($order);
                 $order->addItemQuantity($itemQuantity);
             }
+
+            // Set the final price for the order
+            $order->setFinalPrice((string)$totalAmount);
 
             $this->entityManager->persist($order);
 

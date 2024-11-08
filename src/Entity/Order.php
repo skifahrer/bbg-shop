@@ -3,11 +3,14 @@
 namespace App\Entity;
 
 use App\Enum\OrderStatus;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\UuidInterface;
 
 #[ORM\Entity(repositoryClass: "App\Repository\OrderRepository")]
+#[ORM\Table(name: '`shop_order`')] // mysql reserved keyword
 class Order
 {
     #[ORM\Id]
@@ -41,6 +44,11 @@ class Order
     #[ORM\OneToOne(targetEntity: Checkout::class, mappedBy: 'order')]
     private $checkout;
 
+    public function __construct()
+    {
+        $this->itemQuantities = new ArrayCollection();
+    }
+
     public function getId(): UuidInterface
     {
         return $this->id;
@@ -68,14 +76,28 @@ class Order
         return $this;
     }
 
-    public function getItemQuantities()
+    public function getItemQuantities(): Collection
     {
         return $this->itemQuantities;
     }
 
-    public function setItemQuantities($itemQuantities): self
+    public function addItemQuantity(ItemQuantity $itemQuantity): self
     {
-        $this->itemQuantities = $itemQuantities;
+        if (!$this->itemQuantities->contains($itemQuantity)) {
+            $this->itemQuantities[] = $itemQuantity;
+            $itemQuantity->setOrder($this);
+        }
+        return $this;
+    }
+
+    public function removeItemQuantity(ItemQuantity $itemQuantity): self
+    {
+        if ($this->itemQuantities->removeElement($itemQuantity)) {
+            // set the owning side to null (unless already changed)
+            if ($itemQuantity->getOrder() === $this) {
+                $itemQuantity->setOrder(null);
+            }
+        }
         return $this;
     }
 

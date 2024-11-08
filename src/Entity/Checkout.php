@@ -111,7 +111,7 @@ class Checkout
         return $this;
     }
 
-    public function getPaymentType(): PaymentType
+    public function getPaymentType(): mixed
     {
         return $this->paymentType;
     }
