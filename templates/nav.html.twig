@@ -12,10 +12,9 @@
             </li>
         </ul>
 
-        {# Language Selector #}
         <ul class="navbar-nav">
             <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="#" id="languageDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <a class="nav-link dropdown-toggle" id="languageDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                     <i class="bi bi-globe"></i> {{ app.request.locale|upper }}
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="languageDropdown">
@@ -30,6 +29,12 @@
             {% if app.user %}
                 <li class="nav-item active mx-2">
                     <a class="nav-link" href="">{{ 'auth.hello'|trans }} <small class="text-secondary">({{ app.user.name }})</small></a>
+                </li>
+                <li class="nav-item active">
+                    <a class="nav-link" href="#" id="viewOrders">
+                        <i class="bi bi-box-seam"></i> {{ 'navigation.orders'|trans }}
+                        <span class="badge bg-secondary orders-count">0</span>
+                    </a>
                 </li>
                 <li class="nav-item active mx-2">
                     <a class="nav-link" onclick="handleLogout(event)">{{ 'auth.logout'|trans }}</a>
@@ -52,20 +57,46 @@
     </div>
 </nav>
 
+{% include "orders.html.twig" %}
+
 <script>
     function updateAuthUI(user) {
         const authSection = document.getElementById('auth-section');
-        if (authSection && !authSection.querySelector('.fs-2')) {
-            authSection.innerHTML = `
+        if (!authSection) return;
+
+        if (user.orders) {
+            userOrders = user.orders; // Store orders in global variable
+            const ordersCount = document.querySelector('.orders-count');
+            if (ordersCount) {
+                ordersCount.textContent = user.orders.length;
+            }
+        }
+
+        authSection.innerHTML = `
             <li class="nav-item active mx-2">
-                    <a class="nav-link" href="">{{ 'auth.hello'|trans }} ${user.name}!</a>
+                <a class="nav-link" href="">{{ 'auth.hello'|trans }} ${user.name}!</a>
+            </li>
+            <li class="nav-item active">
+                <a class="nav-link " href="#" onclick="showOrdersList(); return false;">
+                    <i class="bi bi-box-seam"></i> {{ 'navigation.orders'|trans }}
+                    <span class="badge bg-secondary orders-count">${user.orders ? user.orders.length : 0}</span>
+                </a>
             </li>
             <li class="nav-item active mx-2">
                 <a class="nav-link" href="" onclick="handleLogout(event)">{{ 'auth.logout'|trans }}</a>
             </li>
         `;
-        }
     }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const viewOrders = document.getElementById('viewOrders');
+        if (viewOrders) {
+            viewOrders.addEventListener('click', function(e) {
+                e.preventDefault();
+                showOrdersList();
+            });
+        }
+    });
 </script>
 
 {% include "cart.html.twig" %}

@@ -1,0 +1,149 @@
+<!-- Orders Modal -->
+<div class="modal fade" id="ordersModal" tabindex="-1" aria-labelledby="ordersModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="ordersModalLabel">{{ 'orders.list'|trans }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="ordersList" class="list-group">
+                    <!-- Orders will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Order Details Modal -->
+<div class="modal fade" id="orderDetailsModal" tabindex="-1" aria-labelledby="orderDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="orderDetailsModalLabel">{{ 'orders.details'|trans }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="orderDetailsContent">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Store modal instances
+    let ordersModal = null;
+    let orderDetailsModal = null;
+
+    // Initialize modals when the document is ready
+    document.addEventListener('DOMContentLoaded', function() {
+        ordersModal = new bootstrap.Modal(document.getElementById('ordersModal'));
+        orderDetailsModal = new bootstrap.Modal(document.getElementById('orderDetailsModal'));
+    });
+
+
+    async function showOrderDetails(orderId) {
+        const token = sessionStorage.getItem('jwt');
+        try {
+            // Show loading spinner
+            const orderDetailsContent = document.getElementById('orderDetailsContent');
+            orderDetailsContent.innerHTML = `
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            `;
+
+            // Hide orders modal and show details modal
+            ordersModal.hide();
+            orderDetailsModal.show();
+
+            // Fetch order details from API
+            const response = await fetch(`/api/orders/${orderId}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            if (!response.ok) {
+                throw new Error('Failed to fetch order details');
+            }
+
+            const data = await response.json();
+            const order = data.order;
+
+            // Generate items HTML
+            let itemsHtml = order.items.map(item => `
+                <tr>
+                    <td>${item.product.name}</td>
+                    <td>${item.quantity}</td>
+                    <td>${item.product.price}</td>
+                    <td>${(item.product.price * item.quantity).toFixed(2)}</td>
+                </tr>
+            `).join('');
+
+            // Update modal content
+            orderDetailsContent.innerHTML = `
+                <div class="order-info mb-4">
+                    <h6>{{ 'orders.orderInfo'|trans }}</h6>
+                    <p>
+                        <strong>{{ 'orders.date'|trans }}:</strong> ${order.createdAt}<br>
+                        <strong>{{ 'orders.status'|trans }}:</strong> ${order.status}<br>
+                        <strong>{{ 'orders.total'|trans }}:</strong> ${order.finalPrice} Eur
+                    </p>
+                    ${order.shippingAddress ? `
+                    <h6>{{ 'orders.shippingAddress'|trans }}</h6>
+                    <p>${order.shippingAddress}</p>
+                    ` : ''}
+                    ${order.invoiceAddress ? `
+                    <h6>{{ 'orders.invoiceAddress'|trans }}</h6>
+                    <p>${order.invoiceAddress}</p>
+                    ` : ''}
+                </div>
+                <div class="order-items">
+                    <h6>{{ 'orders.items'|trans }}</h6>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>{{ 'orders.product'|trans }}</th>
+                                <th>{{ 'orders.quantity'|trans }}</th>
+                                <th>{{ 'orders.price'|trans }}</th>
+                                <th>{{ 'orders.subtotal'|trans }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${itemsHtml}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        } catch (error) {
+            console.error('Error fetching order details:', error);
+            orderDetailsContent.innerHTML = `
+                <div class="alert alert-danger" role="alert">
+                    {{ 'orders.errorLoading'|trans }}
+                </div>
+            `;
+        }
+    }
+
+
+    function showOrdersList() {
+        const ordersListEl = document.getElementById('ordersList');
+        ordersListEl.innerHTML = userOrders.map(order => `
+            <a class="list-group-item list-group-item-action" onclick="showOrderDetails('${order.id}'); return false;">
+                <div class="d-flex w-100 justify-content-between">
+                    <h5 class="mb-1">{{ 'orders.order'|trans }} #${order.id}</h5>
+                    <small>${order.createdAt}</small>
+                </div>
+                <p class="mb-1">{{ 'orders.status'|trans }}: ${order.status}</p>
+                <small>{{ 'orders.total'|trans }}: ${order.finalPrice} Eur</small>
+            </a>
+        `).join('');
+
+        const ordersModal = new bootstrap.Modal(document.getElementById('ordersModal'));
+        ordersModal.show();
+    }
+
+
+
+</script>

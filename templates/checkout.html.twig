@@ -209,7 +209,7 @@
                     .then(data => {
                         if (data.order_id) {
                             showAlert('success', data.message);
-                            window.location.href = `/${locale}/orders/${data.order_id}`;
+                           // window.location.href = `/${locale}/orders/${data.order_id}`;
                         } else {
                             showAlert('danger', data.error || 'Failed to place order');
                         }
