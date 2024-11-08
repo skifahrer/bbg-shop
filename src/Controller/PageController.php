@@ -1,6 +1,7 @@
 <?php
 namespace App\Controller;
 
+use App\Enum\PaymentType;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -30,6 +31,8 @@ class PageController extends AbstractController
     #[Route('/checkout', name: 'app_checkout')]
     public function checkout(): Response
     {
-        return $this->render('checkout.html.twig');
+        return $this->render('checkout.html.twig', [
+            'paymentTypes' => PaymentType::cases(),
+        ]);
     }
 }
