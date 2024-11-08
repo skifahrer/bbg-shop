@@ -1,6 +1,6 @@
 {% set supported_locales = app_parameter('app.supported_locales') %}
 
-<nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+<nav id="navigation" class="navbar navbar-expand-md navbar-dark fixed-top bg-dark" data-locale="{{ app.request.locale }}">
     <a class="navbar-brand" href="{{ path('home', {'_locale': app.request.locale}) }}">BBG Shop</a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>

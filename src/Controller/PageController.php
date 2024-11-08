@@ -26,4 +26,10 @@ class PageController extends AbstractController
     {
         return $this->render('registration.html.twig');
     }
+
+    #[Route('/checkout', name: 'app_checkout')]
+    public function checkout(): Response
+    {
+        return $this->render('checkout.html.twig');
+    }
 }

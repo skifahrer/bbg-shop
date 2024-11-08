@@ -1,0 +1,304 @@
+{% extends 'base.html.twig' %}
+
+    {% block title %}{{ 'cart.checkout'|trans }}{% endblock %}
+
+    {% block body %}
+
+<div class="container my-5">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4>{{ 'checkout.shipping_address'|trans }}</h4>
+                </div>
+                <div class="card-body">
+                    <form id="shippingAddressForm">
+                        <div class="mb-3">
+                            <label class="form-label">{{ 'checkout.full_name'|trans }}</label>
+                            <input type="text" class="form-control" id="shippingName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">{{ 'checkout.street'|trans }}</label>
+                            <input type="text" class="form-control" id="shippingStreet" required>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ 'checkout.city'|trans }}</label>
+                                <input type="text" class="form-control" id="shippingCity" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ 'checkout.postal_code'|trans }}</label>
+                                <input type="text" class="form-control" id="shippingPostal" required>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4>{{ 'checkout.invoice_address'|trans }}</h4>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="sameAsShipping">
+                            <label class="form-check-label" for="sameAsShipping">
+                                {{ 'checkout.same_as_shipping'|trans }}
+                            </label>
+                        </div>
+                    </div>
+                    <form id="invoiceAddressForm">
+                        <div class="mb-3">
+                            <label class="form-label">{{ 'checkout.full_name'|trans }}</label>
+                            <input type="text" class="form-control" id="invoiceName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">{{ 'checkout.street'|trans }}</label>
+                            <input type="text" class="form-control" id="invoiceStreet" required>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ 'checkout.city'|trans }}</label>
+                                <input type="text" class="form-control" id="invoiceCity" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ 'checkout.postal_code'|trans }}</label>
+                                <input type="text" class="form-control" id="invoicePostal" required>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h4>{{ 'checkout.payment_method'|trans }}</h4>
+                </div>
+                <div class="card-body">
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="radio" name="paymentType" id="paymentCard" value="card" checked>
+                        <label class="form-check-label" for="paymentCard">
+                            {{ 'checkout.payment_card'|trans }}
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="paymentType" id="paymentBank" value="bank_transfer">
+                        <label class="form-check-label" for="paymentBank">
+                            {{ 'checkout.payment_bank'|trans }}
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h4>{{ 'checkout.order_summary'|trans }}</h4>
+                </div>
+                <div class="card-body">
+                    <div id="checkoutItems">
+                        <!-- Items will be inserted here -->
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between mb-2">
+                        <strong>{{ 'checkout.total'|trans }}:</strong>
+                        <span id="checkoutTotal">0.00 €</span>
+                    </div>
+                    <button id="placeOrderBtn" class="btn btn-primary w-100">{{ 'checkout.place_order'|trans }}</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        let currentCheckoutId = null;
+
+        // Initialize checkout
+        function initCheckout() {
+            const token = sessionStorage.getItem('jwt');
+            if (!token) {
+                window.location.href = `/${getCurrentLocale()}/login`;
+                return;
+            }
+
+            loadCurrentCheckout();
+        }
+
+        // Load current checkout
+        function loadCurrentCheckout() {
+            const token = sessionStorage.getItem('jwt');
+            const locale = getCurrentLocale();
+
+            fetch(`/api/checkout/current?locale=${locale}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.checkout_id) {
+                        currentCheckoutId = data.checkout_id;
+                        updateOrderSummary(data);
+                        if (data.shipping_address) {
+                            populateAddressForm('shipping', data.shipping_address);
+                        }
+                        if (data.invoice_address) {
+                            populateAddressForm('invoice', data.invoice_address);
+                        }
+                        if (data.payment_type) {
+                            document.querySelector(`input[name="paymentType"][value="${data.payment_type}"]`).checked = true;
+                        }
+                    } else {
+                        //createNewCheckout();
+                    }
+                })
+                .catch(error => console.error('Error loading checkout:', error));
+        }
+
+        // Create or update checkout
+        function createOrUpdateCheckout() {
+            const token = sessionStorage.getItem('jwt');
+            const shippingAddress = getAddressData('shipping');
+            const invoiceAddress = document.getElementById('sameAsShipping').checked ?
+                shippingAddress : getAddressData('invoice');
+            const paymentType = document.querySelector('input[name="paymentType"]:checked').value;
+
+            fetch('/api/checkout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    shipping_address: shippingAddress,
+                    invoice_address: invoiceAddress,
+                    payment_type: paymentType
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.checkout_id) {
+                        currentCheckoutId = data.checkout_id;
+                        showAlert('success', data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error updating checkout:', error);
+                    showAlert('danger', 'Failed to update checkout details');
+                });
+        }
+
+        // Place order
+        function placeOrder() {
+            if (!currentCheckoutId) {
+                showAlert('danger', 'No active checkout found');
+                return;
+            }
+
+            const token = sessionStorage.getItem('jwt');
+
+            fetch(`/api/checkout/${currentCheckoutId}/place-order`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.order_id) {
+                        showAlert('success', data.message);
+                        window.location.href = `/${getCurrentLocale()}/order/${data.order_id}`;
+                    } else {
+                        showAlert('danger', data.error || 'Failed to place order');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error placing order:', error);
+                    showAlert('danger', 'Failed to place order');
+                });
+        }
+
+        // Helper functions
+        function getAddressData(type) {
+            return {
+                name: document.getElementById(`${type}Name`).value,
+                street: document.getElementById(`${type}Street`).value,
+                city: document.getElementById(`${type}City`).value,
+                postal_code: document.getElementById(`${type}Postal`).value
+            };
+        }
+
+        function populateAddressForm(type, address) {
+            try {
+                const addressData = typeof address === 'string' ? JSON.parse(address) : address;
+                document.getElementById(`${type}Name`).value = addressData.name || '';
+                document.getElementById(`${type}Street`).value = addressData.street || '';
+                document.getElementById(`${type}City`).value = addressData.city || '';
+                document.getElementById(`${type}Postal`).value = addressData.postal_code || '';
+            } catch (e) {
+                console.error('Error populating address form:', e);
+            }
+        }
+
+        function updateOrderSummary(data) {
+            const container = document.getElementById('checkoutItems');
+            container.innerHTML = '';
+
+            data.items.forEach(item => {
+                const itemElement = document.createElement('div');
+                itemElement.className = 'mb-2';
+                itemElement.innerHTML = `
+                <div class="d-flex justify-content-between">
+                    <span>${item.quantity}x ${item.title}</span>
+                    <span>${item.amount.toFixed(2)} €</span>
+                </div>
+            `;
+                container.appendChild(itemElement);
+            });
+
+            document.getElementById('checkoutTotal').textContent = `${data.total_amount.toFixed(2)} €`;
+        }
+
+        function showAlert(type, message) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+            alertDiv.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        `;
+            document.querySelector('.container').insertBefore(alertDiv, document.querySelector('.row'));
+            setTimeout(() => alertDiv.remove(), 5000);
+        }
+
+        // Event listeners
+        document.getElementById('sameAsShipping').addEventListener('change', function(e) {
+            const invoiceForm = document.getElementById('invoiceAddressForm');
+            if (e.target.checked) {
+                invoiceForm.style.display = 'none';
+                createOrUpdateCheckout();
+            } else {
+                invoiceForm.style.display = 'block';
+            }
+        });
+
+        const addressInputs = document.querySelectorAll('#shippingAddressForm input, #invoiceAddressForm input');
+        addressInputs.forEach(input => {
+            input.addEventListener('change', createOrUpdateCheckout);
+        });
+
+        document.querySelectorAll('input[name="paymentType"]').forEach(radio => {
+            radio.addEventListener('change', createOrUpdateCheckout);
+        });
+
+        document.getElementById('placeOrderBtn').addEventListener('click', placeOrder);
+
+        // Initialize checkout on page load
+        initCheckout();
+    });
+</script>
+
+    {% endblock %}
