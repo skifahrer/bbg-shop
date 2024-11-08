@@ -22,7 +22,7 @@ class CartRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('c')
             ->leftJoin('c.checkout', 'ch')
             ->where('c.user = :user')
-            ->andWhere('ch.id IS NULL')
+            ->andWhere('ch.order IS NULL')
             ->setParameter('user', $user)
             ->getQuery()
             ->getOneOrNullResult();
