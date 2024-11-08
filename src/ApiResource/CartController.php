@@ -152,20 +152,16 @@ class CartController extends AbstractController
             return $this->json(['error' => 'Cart not found'], Response::HTTP_NOT_FOUND);
         }
 
-        $itemQuantity = null;
-        foreach ($activeCart->getItemQuantities() as $iq) {
-            if ($iq->getProduct()->getId() === $productId) {
-                $itemQuantity = $iq;
-                break;
-            }
-        }
+        $itemQuantity = $activeCart->getItemQuantities()->filter(function ($iq) use ($productId) {
+            return $iq->getProduct()->getId() == $productId;
+        })->first();
 
         if (!$itemQuantity) {
             return $this->json(['error' => 'Product not found in cart'], Response::HTTP_NOT_FOUND);
         }
 
         if ($quantity <= 0) {
-            $this->entityManager->remove($itemQuantity);
+            $activeCart->removeItemQuantity($itemQuantity);
         } else {
             if ($itemQuantity->getProduct()->getStock() < $quantity) {
                 return $this->json(['error' => 'Insufficient stock'], Response::HTTP_BAD_REQUEST);
@@ -173,7 +169,7 @@ class CartController extends AbstractController
             $itemQuantity->setQuantity($quantity);
         }
 
-        $this->entityManager->flush();
+        $this->cartRepository->save($activeCart, true);
 
         return $this->json(['message' => 'Cart updated successfully']);
     }
