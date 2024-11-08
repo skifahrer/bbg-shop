@@ -31,13 +31,13 @@ class Checkout
     #[ORM\Column(type: 'datetime')]
     private $createdAt;
 
-    #[ORM\Column(type: 'string', length: 255)]
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private $shippingAddress;
 
-    #[ORM\Column(type: 'string', length: 255)]
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private $invoiceAddress;
 
-    #[ORM\Column(type: 'string', enumType: PaymentType::class)]
+    #[ORM\Column(type: 'string', enumType: PaymentType::class, nullable: true)]
     private $paymentType;
 
     public function getId(): UuidInterface
@@ -67,7 +67,7 @@ class Checkout
         return $this;
     }
 
-    public function getOrder(): Order
+    public function getOrder(): mixed
     {
         return $this->order;
     }
@@ -89,7 +89,7 @@ class Checkout
         return $this;
     }
 
-    public function getShippingAddress(): string
+    public function getShippingAddress(): mixed
     {
         return $this->shippingAddress;
     }
@@ -100,7 +100,7 @@ class Checkout
         return $this;
     }
 
-    public function getInvoiceAddress(): string
+    public function getInvoiceAddress(): mixed
     {
         return $this->invoiceAddress;
     }

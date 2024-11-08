@@ -138,19 +138,17 @@ class CheckoutController extends AbstractController
             }
 
             // Update checkout with provided data, if any
-            if (empty($data['shipping_address'])) {
-                $data['shipping_address']="";
+            if (!empty($data['shipping_address'])) {
+                $checkout->setShippingAddress($data['shipping_address']);
             }
-            if (empty($data['invoice_address'])) {
-                $data['invoice_address']="";
+            if (!empty($data['invoice_address'])) {
+                $checkout->setInvoiceAddress($data['invoice_address']);
             }
-            if (empty($data['payment_type'])) {
-                $data['payment_type']="credit_card";
+            if (!empty($data['payment_type'])) {
+                $checkout->setPaymentType(PaymentType::from($data['payment_type']));
             }
 
-            $checkout->setShippingAddress($data['shipping_address']);
-            $checkout->setInvoiceAddress($data['invoice_address']);
-            $checkout->setPaymentType(PaymentType::from($data['payment_type']));
+
             $this->entityManager->persist($checkout);
             $this->entityManager->flush();
 
