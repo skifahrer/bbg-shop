@@ -41,25 +41,6 @@
     </div>
 </div>
 
-<!-- Modal -->
-<div class="modal fade" id="productModal" tabindex="-1" aria-labelledby="productModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="productModalLabel">Product Details</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="border: 0">&times;</button>
-            </div>
-            <div class="modal-body">
-                <!-- Content will be dynamically inserted here -->
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary add-to-cart-modal">{{ 'cart.add_to_cart'|trans }}</button>
-            </div>
-        </div>
-    </div>
-</div>
-
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const productGrid = document.querySelector('.product-grid');
@@ -67,31 +48,10 @@
         const nextPageButtons = document.querySelectorAll('#nextPage');
         const prevPageItems = document.querySelectorAll('#prevPageItem, #prevPageItem2');
         const nextPageItems = document.querySelectorAll('#nextPageItem, #nextPageItem2');
-        const modalElement = document.getElementById('productModal');
         const searchInput = document.getElementById('searchInput');
-        let productModal = null;
         let currentPage = 1;
         const limit = 8;
         let currentSearch = '';
-        let currentProductId = null;
-
-        // Initialize Bootstrap modal
-        if (typeof bootstrap !== 'undefined') {
-            productModal = new bootstrap.Modal(modalElement, {
-                keyboard: true,
-                backdrop: true
-            });
-
-            modalElement.addEventListener('shown.bs.modal', function () {
-                console.log('Modal shown');
-            });
-
-            modalElement.addEventListener('hidden.bs.modal', function () {
-                console.log('Modal hidden');
-            });
-        } else {
-            console.error('Bootstrap is not loaded!');
-        }
 
         function addToCart(productId) {
             const token = sessionStorage.getItem('jwt');
@@ -115,13 +75,7 @@
                 .then(data => {
                     if (data.message) {
                         // Trigger cart update
-                        const cartUpdateEvent = new Event('cartUpdated');
-                        document.dispatchEvent(cartUpdateEvent);
-
-                        // Close modal if it's open
-                        if (productModal && productModal._isShown) {
-                            productModal.hide();
-                        }
+                        updateCart();
                     }
                 })
                 .catch(error => console.error('Error adding to cart:', error));
@@ -207,95 +161,12 @@
             };
         }
 
-        function showProductDetails(productId) {
-            fetch(`/api/products/${productId}`)
-                .then(response => response.json())
-                .then(data => {
-                    const modalBody = modalElement.querySelector('.modal-body');
-                    const currentLocale = document.getElementById('productBookshelf').dataset.locale;
-                    const browserLang = (currentLocale || 'en').toLowerCase();
-                    const titleKey = `title_${browserLang}`;
-
-                    let productTitle = data[titleKey] || 'Title not available';
-
-                    modalBody.innerHTML = `
-                    <div class="row">
-                        <div class="col-md-6">
-                            <img src="${data.image || '{{ asset("images/product.jpeg") }}'}"
-                                 class="img-fluid" alt="${productTitle}">
-                        </div>
-                        <div class="col-md-6 product-properties">
-                            <h4>${productTitle}</h4>
-                            <p><strong>Item:</strong> ${data.item}</p>
-                            <p><strong>Price:</strong> ${data.oxprice} €</p>
-                            <p><strong>Stock:</strong> ${data.stock}</p>
-                            <p><strong>Dimensions:</strong> ${data.length}x${data.width}x${data.height}</p>
-                            <p><strong>Weight:</strong> ${data.weight}</p>
-                        </div>
-                        <div class="col-md-12 product-properties-features">
-                            ${data.features_json ? formatFeatures(data.features_json) : ''}
-                        </div>
-                    </div>
-                `;
-
-                    const addToCartBtn = modalElement.querySelector('.add-to-cart-modal');
-                    if (data.stock <= 0) {
-                        addToCartBtn.disabled = true;
-                        addToCartBtn.textContent = '{{ 'product.out_of_stock'|trans }}';
-                    } else {
-                        addToCartBtn.disabled = false;
-                        addToCartBtn.textContent = '{{ 'cart.add_to_cart'|trans }}';
-                    }
-
-                    if (productModal) {
-                        productModal.show();
-                    } else {
-                        console.error('Bootstrap modal is not initialized!');
-                    }
-                })
-                .catch(error => console.error('Error loading product details:', error));
-        }
-
-        function formatFeatures(featuresJson) {
-            try {
-                const features = typeof featuresJson === 'object' ? featuresJson : JSON.parse(featuresJson);
-
-                if (features && features.features && Array.isArray(features.features)) {
-                    return `
-                    <div class="features-section mt-4">
-                        <h5>{{ 'product.features'|trans }}</h5>
-                        <ul class="list-group">
-                            ${features.features
-                        .filter(feature => feature.desc)
-                        .map(feature => `
-                                    <li class="list-group-item">
-                                        <i class="fas fa-check text-success me-2"></i>
-                                        ${feature.desc}
-                                    </li>
-                                `).join('')}
-                        </ul>
-                    </div>
-                `;
-                }
-                return '';
-            } catch (e) {
-                console.error('Error formatting features:', e);
-                return '';
-            }
-        }
-
         // Event Listeners
         productGrid.addEventListener('click', (e) => {
             const addToCartButton = e.target.closest('.add-to-cart');
             if (addToCartButton) {
                 const productId = addToCartButton.dataset.productId;
                 addToCart(productId);
-            }
-        });
-
-        modalElement.querySelector('.add-to-cart-modal').addEventListener('click', () => {
-            if (currentProductId) {
-                addToCart(currentProductId);
             }
         });
 
@@ -321,21 +192,6 @@
             if (e.key === 'Enter') {
                 e.preventDefault();
                 handleSearch();
-            }
-        });
-
-        productGrid.addEventListener('click', (e) => {
-            const productCard = e.target.closest('.product-card');
-            if (productCard) {
-                const productId = productCard.dataset.productId;
-                showProductDetails(productId);
-            }
-        });
-
-        // Manual close button handler
-        document.querySelector('.btn-close').addEventListener('click', () => {
-            if (productModal) {
-                productModal.hide();
             }
         });
 

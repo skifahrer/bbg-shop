@@ -39,64 +39,61 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const cartModal = new bootstrap.Modal(document.getElementById('cartModal'));
-        const cartBadge = document.getElementById('cart-count');
+    function updateCart() {
+        const token = sessionStorage.getItem('jwt');
+        if (!token) {
+            document.getElementById('emptyCartMessage').style.display = 'block';
+            document.getElementById('cartTable').style.display = 'none';
+            document.getElementById('cartTotal').style.display = 'none !important';
+            document.getElementById('proceedToCheckout').style.display = 'none';
+            return;
+        }
 
-        function updateCart() {
-            const token = sessionStorage.getItem('jwt');
-            if (!token) {
-                document.getElementById('emptyCartMessage').style.display = 'block';
-                document.getElementById('cartTable').style.display = 'none';
-                document.getElementById('cartTotal').style.display = 'none !important';
-                document.getElementById('proceedToCheckout').style.display = 'none';
-                return;
+        const locale = getCurrentLocale();
+
+        fetch(`/api/cart?locale=${locale}`,{
+            headers: {
+                'Authorization': `Bearer ${token}`
             }
-
-            const locale = getCurrentLocale();
-
-            fetch(`/api/cart?locale=${locale}`,{
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+        })
+            .then(response => response.json())
+            .then(data => {
+                updateCartBadge(data.total_amount);
+                updateCartModal(data);
             })
-                .then(response => response.json())
-                .then(data => {
-                    updateCartBadge(data.total_amount);
-                    updateCartModal(data);
-                })
-                .catch(error => console.error('Error fetching cart:', error));
+            .catch(error => console.error('Error fetching cart:', error));
+    }
+
+    function updateCartBadge(count) {
+        const cartBadge = document.getElementById('cart-count');
+        cartBadge.textContent = count;
+    }
+
+    function updateCartModal(cartData) {
+        const cartItems = document.getElementById('cartItems');
+        const emptyCartMessage = document.getElementById('emptyCartMessage');
+        const cartTable = document.getElementById('cartTable');
+        const cartTotal = document.getElementById('cartTotal');
+        const cartTotalAmount = document.getElementById('cartTotalAmount');
+        const proceedToCheckout = document.getElementById('proceedToCheckout');
+
+        if (cartData.items.length === 0) {
+            emptyCartMessage.style.display = 'block';
+            cartTable.style.display = 'none';
+            cartTotal.style.display = 'none';
+            proceedToCheckout.style.display = 'none';
+            return;
         }
 
-        function updateCartBadge(count) {
-            cartBadge.textContent = count;
-        }
+        emptyCartMessage.style.display = 'none';
+        cartTable.style.display = 'block';
+        cartTotal.style.display = 'block';
+        proceedToCheckout.style.display = 'block';
+        cartItems.innerHTML = '';
 
-        function updateCartModal(cartData) {
-            const cartItems = document.getElementById('cartItems');
-            const emptyCartMessage = document.getElementById('emptyCartMessage');
-            const cartTable = document.getElementById('cartTable');
-            const cartTotal = document.getElementById('cartTotal');
-            const cartTotalAmount = document.getElementById('cartTotalAmount');
-            const proceedToCheckout = document.getElementById('proceedToCheckout');
-
-            if (cartData.items.length === 0) {
-                emptyCartMessage.style.display = 'block';
-                cartTable.style.display = 'none';
-                cartTotal.style.display = 'none';
-                proceedToCheckout.style.display = 'none';
-                return;
-            }
-
-            emptyCartMessage.style.display = 'none';
-            cartTable.style.display = 'block';
-            cartTotal.style.display = 'block';
-            proceedToCheckout.style.display = 'block';
-            cartItems.innerHTML = '';
-
-            cartData.items.forEach(item => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
+        cartData.items.forEach(item => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
                     <td>
                         <div class="d-flex align-items-center">
                             <img src="/images/product.jpeg" alt="${item.title}" style="width: 50px; height: 50px; object-fit: cover" class="me-2">
@@ -119,11 +116,14 @@
                         </button>
                     </td>
                 `;
-                cartItems.appendChild(row);
-            });
+            cartItems.appendChild(row);
+        });
 
-            cartTotalAmount.textContent = cartData.total_amount.toFixed(2);
-        }
+        cartTotalAmount.textContent = cartData.total_amount.toFixed(2);
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const cartModal = new bootstrap.Modal(document.getElementById('cartModal'));
 
         window.updateQuantity = function(productId, quantity) {
             const token = sessionStorage.getItem('jwt');
