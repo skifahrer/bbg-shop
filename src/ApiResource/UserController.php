@@ -16,7 +16,6 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Get;
 
-
 #[Post(
     uriTemplate: '/users/register',
     controller: 'App\ApiResource\UserController::register',
@@ -28,7 +27,6 @@ use ApiPlatform\Metadata\Get;
     security: "is_granted('ROLE_USER')",
     name: 'api_me'
 )]
-
 class UserController extends AbstractController
 {
     public function __construct(
@@ -61,7 +59,6 @@ class UserController extends AbstractController
         $this->entityManager->persist($user);
         $this->entityManager->flush();
 
-        // Create token with user ID
         $token = $this->jwtManager->createFromPayload($user, ['exp' => (new \DateTime('+24 hours'))->getTimestamp()]);
 
         return $this->json([
@@ -97,7 +94,24 @@ class UserController extends AbstractController
                                                ];
                                            }, $cart->getItemQuantities()->toArray())
                                        ];
-                                   }, $user->getCarts()->toArray())
+                                   }, $user->getCarts()->toArray()),
+                                   'orders' => array_map(function($order) use ($locale) {
+                                       return [
+                                           'id' => $order->getId(),
+                                           'status' => $order->getStatus(),
+                                           'createdAt' => $order->getCreatedAt()->format('Y-m-d H:i:s'),
+                                           'finalPrice' => $order->getFinalPrice()
+                                       ];
+                                   }, $user->getOrders()->toArray()),
+                                   'checkouts' => array_map(function($checkout) {
+                                       return [
+                                           'id' => $checkout->getId(),
+                                           'cart' => [
+                                               'id' => $checkout->getCart()->getId(),
+                                           ],
+                                           'createdAt' => $checkout->getCreatedAt()->format('Y-m-d H:i:s'),
+                                       ];
+                                   }, $user->getCheckouts()->toArray())
                                ]
                            ], 200, [], ['groups' => ['user:read']]);
     }

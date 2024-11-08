@@ -122,6 +122,34 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, JWTUser
         return $this;
     }
 
+    public function setCarts($carts): self
+    {
+        $this->carts = $carts;
+        return $this;
+    }
+
+    public function setOrders($orders): self
+    {
+        $this->orders = $orders;
+        return $this;
+    }
+
+    public function setCheckouts($checkouts): self
+    {
+        $this->checkouts = $checkouts;
+        return $this;
+    }
+
+    public function getOrders()
+    {
+        return $this->orders;
+    }
+
+    public function getCheckouts()
+    {
+        return $this->checkouts;
+    }
+
     public function setPassword(string $password): self
     {
         $this->password = $password;
