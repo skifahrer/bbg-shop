@@ -25,7 +25,7 @@ class Checkout
     private $cart;
 
     #[ORM\OneToOne(targetEntity: Order::class)]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: true)]
     private $order;
 
     #[ORM\Column(type: 'datetime')]

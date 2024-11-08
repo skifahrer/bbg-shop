@@ -286,13 +286,8 @@
 
         // Event Listeners
         productGrid.addEventListener('click', (e) => {
-            const detailsButton = e.target.closest('.product-details');
             const addToCartButton = e.target.closest('.add-to-cart');
-
-            if (detailsButton) {
-                const productId = detailsButton.dataset.productId;
-                showProductDetails(productId);
-            } else if (addToCartButton) {
+            if (addToCartButton) {
                 const productId = addToCartButton.dataset.productId;
                 addToCart(productId);
             }

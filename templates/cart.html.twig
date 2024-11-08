@@ -151,8 +151,27 @@
         });
 
         document.getElementById('proceedToCheckout').addEventListener('click', function() {
-            const locale = getCurrentLocale();
-            window.location.href = `/${locale}/checkout`;
+            const token = sessionStorage.getItem('jwt');
+            if (!token) return;
+
+            fetch('/api/checkout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({}) // Empty body for minimal checkout
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.checkout_id) {
+                        const locale = getCurrentLocale();
+                        window.location.href = `/${locale}/checkout`;
+                    } else {
+                        console.error('Failed to create checkout');
+                    }
+                })
+                .catch(error => console.error('Error creating checkout:', error));
         });
 
         // Manual close button handler

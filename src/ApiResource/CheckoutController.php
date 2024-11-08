@@ -19,7 +19,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
 
 #[Get(
-    uriTemplate: '/checkout/current',
+    uriTemplate: '/checkout',
     controller: 'App\ApiResource\CheckoutController::getCurrentCheckout',
     security: "is_granted('ROLE_USER')",
     name: 'api_get_current_checkout'
@@ -118,14 +118,6 @@ class CheckoutController extends AbstractController
     {
         $data = json_decode($request->getContent(), true);
 
-        // Validate required fields
-        if (empty($data['shipping_address']) || empty($data['invoice_address'])) {
-            return $this->json(
-                ['error' => 'Shipping address and invoice address are required.'],
-                Response::HTTP_BAD_REQUEST
-            );
-        }
-
         // Get active cart
         $activeCart = $this->cartRepository->findActiveCartByUser($user);
         if (!$activeCart || $activeCart->getItemQuantities()->isEmpty()) {
@@ -145,14 +137,20 @@ class CheckoutController extends AbstractController
                 $isNewCheckout = true;
             }
 
-            $checkout->setShippingAddress($data['shipping_address']);
-            $checkout->setInvoiceAddress($data['invoice_address']);
-
-            // Handle payment type
-            if (!empty($data['payment_type'])) {
-                $checkout->setPaymentType(PaymentType::from($data['payment_type']));
+            // Update checkout with provided data, if any
+            if (empty($data['shipping_address'])) {
+                $data['shipping_address']="";
+            }
+            if (empty($data['invoice_address'])) {
+                $data['invoice_address']="";
+            }
+            if (empty($data['payment_type'])) {
+                $data['payment_type']="credit_card";
             }
 
+            $checkout->setShippingAddress($data['shipping_address']);
+            $checkout->setInvoiceAddress($data['invoice_address']);
+            $checkout->setPaymentType(PaymentType::from($data['payment_type']));
             $this->entityManager->persist($checkout);
             $this->entityManager->flush();
 
@@ -160,11 +158,6 @@ class CheckoutController extends AbstractController
                 'checkout_id' => $checkout->getId(),
                 'message' => $isNewCheckout ? 'Checkout created successfully' : 'Checkout details updated successfully'
             ];
-
-            // Include created_at for new checkouts
-            if ($isNewCheckout) {
-                $response['created_at'] = $checkout->getCreatedAt()->format('Y-m-d H:i:s');
-            }
 
             return $this->json(
                 $response,

@@ -1,0 +1,941 @@
+=== src/Repository/CartRepository.php ===
+
+<?php
+
+namespace App\Repository;
+
+use App\Entity\Cart;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\ORM\Mapping as ORM;
+
+#[ORM\Entity(repositoryClass: CartRepository::class)]
+class CartRepository extends ServiceEntityRepository
+{
+    public function __construct(ManagerRegistry $registry)
+    {
+        parent::__construct($registry, Cart::class);
+    }
+
+    // Add custom methods here
+}
+
+
+=== src/Repository/ProductRepository.php ===
+
+<?php
+
+namespace App\Repository;
+
+use App\Entity\Product;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\ORM\QueryBuilder;
+use Doctrine\ORM\Tools\Pagination\Paginator;
+
+class ProductRepository extends ServiceEntityRepository
+{
+    public function __construct(ManagerRegistry $registry)
+    {
+        parent::__construct($registry, Product::class);
+    }
+
+    private function createSearchQueryBuilder(string $search = '', string $locale = 'en'): QueryBuilder
+    {
+        $qb = $this->createQueryBuilder('p');
+
+        if ($search) {
+            // Map locale to entity field name
+            $titleField = match($locale) {
+                'sk' => 'title_sk',
+                'sl' => 'title_sl',
+                'hu' => 'title_hu',
+                'hr' => 'title_hr',
+                'ro' => 'title_ro',
+                'bg' => 'title_bg',
+                default => 'title_en'
+            };
+
+            $qb->where("LOWER(p.{$titleField}) LIKE LOWER(:search)")
+                ->orWhere('LOWER(p.item) LIKE LOWER(:search)')
+                ->setParameter('search', '%' . strtolower($search) . '%');
+        }
+
+        return $qb;
+    }
+
+    public function findBySearchPaginated(string $search, int $page, int $limit, string $locale = 'en'): array
+    {
+        $qb = $this->createSearchQueryBuilder($search, $locale)
+            ->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit);
+
+        $paginator = new Paginator($qb->getQuery());
+        return $paginator->getIterator()->getArrayCopy();
+    }
+
+    public function countBySearch(string $search, string $locale = 'en'): int
+    {
+        $qb = $this->createSearchQueryBuilder($search, $locale)
+            ->select('COUNT(p.id)');
+
+        return $qb->getQuery()->getSingleScalarResult();
+    }
+
+    public function findAllPaginated(int $page, int $limit): array
+    {
+        return $this->findBySearchPaginated('', $page, $limit);
+    }
+
+    public function countAll(): int
+    {
+        return $this->countBySearch('');
+    }
+
+    public function getProductData(Product $product): array
+    {
+        return [
+            'id' => $product->getId()->toString(),
+            'item' => $product->getItem(),
+            'oxprice' => $product->getOxprice(),
+            'weight' => $product->getWeight(),
+            'stock' => $product->getStock(),
+            'length' => $product->getLength(),
+            'width' => $product->getWidth(),
+            'height' => $product->getHeight(),
+            'title_en' => $product->getTitleEn(),
+            'title_sk' => $product->getTitleSk(),
+            'title_sl' => $product->getTitleSl(),
+            'title_hu' => $product->getTitleHu(),
+            'title_hr' => $product->getTitleHr(),
+            'title_ro' => $product->getTitleRo(),
+            'title_bg' => $product->getTitleBg(),
+            'features_json' => $product->getFeaturesJson()
+        ];
+    }
+}
+
+
+=== templates/products.html.twig ===
+
+<div id="productBookshelf" class="container" data-locale="{{ app.request.locale }}">
+    <!-- Search Bar -->
+    <div class="row mt-4">
+        <div class="col-md-6 offset-md-3">
+            <div class="input-group">
+                <input type="text"
+                       id="searchInput"
+                       class="form-control"
+                       placeholder="{{ 'search.placeholder'|trans }}"
+                       aria-label="{{ 'search.placeholder'|trans }}">
+            </div>
+        </div>
+    </div>
+
+    <div class="pagination-controls mt-4">
+        <nav aria-label="Product navigation">
+            <ul class="pagination justify-content-center">
+                <li class="page-item" id="prevPageItem">
+                    <button class="page-link" id="prevPage">{{ 'navigation.previous'|trans }}</button>
+                </li>
+                <li class="page-item" id="nextPageItem">
+                    <button class="page-link" id="nextPage">{{ 'navigation.next'|trans }}</button>
+                </li>
+            </ul>
+        </nav>
+    </div>
+    <div class="row product-grid">
+        <!-- Products will be dynamically inserted here in two rows -->
+    </div>
+    <div class="pagination-controls mt-4">
+        <nav aria-label="Product navigation">
+            <ul class="pagination justify-content-center">
+                <li class="page-item" id="prevPageItem2">
+                    <button class="page-link" id="prevPage">{{ 'navigation.previous'|trans }}</button>
+                </li>
+                <li class="page-item" id="nextPageItem2">
+                    <button class="page-link" id="nextPage">{{ 'navigation.next'|trans }}</button>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="productModal" tabindex="-1" aria-labelledby="productModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="productModalLabel">Product Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="border: 0">&times;</button>
+            </div>
+            <div class="modal-body">
+                <!-- Content will be dynamically inserted here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const productGrid = document.querySelector('.product-grid');
+        const prevPageButtons = document.querySelectorAll('#prevPage');
+        const nextPageButtons = document.querySelectorAll('#nextPage');
+        const prevPageItems = document.querySelectorAll('#prevPageItem, #prevPageItem2');
+        const nextPageItems = document.querySelectorAll('#nextPageItem, #nextPageItem2');
+        const modalElement = document.getElementById('productModal');
+        const searchInput = document.getElementById('searchInput');
+        let productModal = null;
+        let currentPage = 1;
+        const limit = 8;
+        let currentSearch = '';
+
+        // Initialize Bootstrap modal
+        if (typeof bootstrap !== 'undefined') {
+            productModal = new bootstrap.Modal(modalElement, {
+                keyboard: true,
+                backdrop: true
+            });
+
+            modalElement.addEventListener('shown.bs.modal', function () {
+                console.log('Modal shown');
+            });
+
+            modalElement.addEventListener('hidden.bs.modal', function () {
+                console.log('Modal hidden');
+            });
+        } else {
+            console.error('Bootstrap is not loaded!');
+        }
+
+        function getCurrentLocale() {
+            const productBookshelf = document.getElementById('productBookshelf');
+            return (productBookshelf.dataset.locale || 'en').toLowerCase();
+        }
+
+        function loadProducts(page, search = '') {
+            const locale = getCurrentLocale();
+            fetch(`/api/products?page=${page}&limit=${limit}&search=${encodeURIComponent(search)}&locale=${locale}`)
+                .then(response => response.json())
+                .then(data => {
+                    currentPage = data.currentPage;
+                    updatePaginationButtons(data.currentPage, data.totalPages);
+                    displayProducts(data.products);
+                })
+                .catch(error => console.error('Error loading products:', error));
+        }
+
+        function displayProducts(products) {
+            productGrid.innerHTML = '';
+            const currentLocale = getCurrentLocale();
+
+            products.forEach(product => {
+                const productCard = document.createElement('div');
+                productCard.classList.add('col-md-6', 'col-lg-3', 'mb-4');
+
+                const titleKey = `title${currentLocale.charAt(0).toUpperCase() + currentLocale.slice(1)}`;
+                let productTitle = product[titleKey] || 'Title not available';
+
+                productCard.innerHTML = `
+                    <div class="product-card" data-product-id="${product.id}">
+                        <img src="${product.image || '{{ asset("images/product.jpeg") }}'}"
+                             alt="${productTitle}"
+                             class="product-image">
+                        <h5 class="product-title" title="${productTitle}">${productTitle}</h5>
+                        <p class="product-stock ${product.stock <= 0 ? 'out-of-stock' : ''}">
+                            ${product.stock <= 0 ? '{{ 'product.out_of_stock'|trans }}' : '{{ 'product.stock'|trans }}: ' + product.stock}
+                        </p>
+                        <p class="product-price">${product.oxprice} €</p>
+                        <button class="btn btn-primary btn-block view-details">
+                            {{ 'product.details'|trans }}
+                        </button>
+                    </div>
+                `;
+                productGrid.appendChild(productCard);
+            });
+        }
+
+        function updatePaginationButtons(currentPage, totalPages) {
+            // Handle Previous buttons visibility
+            prevPageItems.forEach(item => {
+                item.style.display = currentPage <= 1 ? 'none' : 'list-item';
+            });
+
+            // Handle Next buttons visibility
+            nextPageItems.forEach(item => {
+                item.style.display = currentPage >= totalPages ? 'none' : 'list-item';
+            });
+        }
+
+        // Search functionality
+        function handleSearch() {
+            currentSearch = searchInput.value.trim();
+            if (currentSearch.length < 2) {
+                return; // Do not search if less than 2 characters
+            }
+            currentPage = 1;
+            loadProducts(currentPage, currentSearch);
+        }
+
+        // Debounce function to limit API calls
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        function showProductDetails(productId) {
+            fetch(`/api/products/${productId}`)
+                .then(response => response.json())
+                .then(data => {
+                    const modalBody = modalElement.querySelector('.modal-body');
+                    const currentLocale = document.getElementById('productBookshelf').dataset.locale;
+                    const browserLang = (currentLocale || 'en').toLowerCase();
+                    const titleKey = `title_${browserLang}`;
+
+                    let productTitle = "";
+                    if (data[titleKey]) {
+                        productTitle = data[titleKey];
+                    } else {
+                        productTitle = 'Title not available';
+                    }
+
+                    modalBody.innerHTML = `
+                    <div class="row">
+                        <div class="col-md-6">
+                            <img src="${data.image || '{{ asset("images/product.jpeg") }}'}"
+                                 class="img-fluid" alt="${productTitle}">
+                        </div>
+                        <div class="col-md-6 product-properties">
+                            <h4>${productTitle}</h4>
+                            <p><strong>Item:</strong> ${data.item}</p>
+                            <p><strong>Price:</strong> ${data.oxprice} €</p>
+                            <p><strong>Stock:</strong> ${data.stock}</p>
+                            <p><strong>Dimensions:</strong> ${data.length}x${data.width}x${data.height}</p>
+                            <p><strong>Weight:</strong> ${data.weight}</p>
+                        </div>
+                        <div class="col-md-12 product-properties-features">
+                            ${data.features_json ? formatFeatures(data.features_json) : ''}
+                        </div>
+                    </div>
+                `;
+
+                    if (productModal) {
+                        productModal.show();
+                    } else {
+                        console.error('Bootstrap modal is not initialized!');
+                    }
+                })
+                .catch(error => console.error('Error loading product details:', error));
+        }
+
+        function formatFeatures(featuresJson) {
+            try {
+                const features = typeof featuresJson === 'object' ? featuresJson : JSON.parse(featuresJson);
+
+                if (features && features.features && Array.isArray(features.features)) {
+                    return `
+                    <div class="features-section mt-4">
+                        <h5>{{ 'product.features'|trans }}</h5>
+                        <ul class="list-group">
+                            ${features.features
+                        .filter(feature => feature.desc)
+                        .map(feature => `
+                                    <li class="list-group-item">
+                                        <i class="fas fa-check text-success me-2"></i>
+                                        ${feature.desc}
+                                    </li>
+                                `).join('')}
+                        </ul>
+                    </div>
+                `;
+                }
+                return '';
+            } catch (e) {
+                console.error('Error formatting features:', e);
+                return '';
+            }
+        }
+
+        // Event Listeners
+        prevPageButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                if (currentPage > 1) {
+                    loadProducts(currentPage - 1, currentSearch);
+                }
+            });
+        });
+
+        nextPageButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                loadProducts(currentPage + 1, currentSearch);
+            });
+        });
+
+        // Debounced search for input typing
+        const debouncedSearch = debounce(handleSearch, 500);
+        searchInput.addEventListener('input', debouncedSearch);
+
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                handleSearch();
+            }
+        });
+
+        productGrid.addEventListener('click', (e) => {
+            const productCard = e.target.closest('.product-card');
+            if (productCard) {
+                const productId = productCard.dataset.productId;
+                showProductDetails(productId);
+            }
+        });
+
+        // Manual close button handler
+        document.querySelector('.btn-close').addEventListener('click', () => {
+            if (productModal) {
+                productModal.hide();
+            }
+        });
+
+        // Initial load
+        loadProducts(currentPage, currentSearch);
+    });
+</script>
+
+
+=== templates/nav.html.twig ===
+
+{% set supported_locales = app_parameter('app.supported_locales') %}
+
+<nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+    <a class="navbar-brand" href="{{ path('home', {'_locale': app.request.locale}) }}">BBG Shop</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarCollapse">
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item active">
+                <a class="nav-link" href="/">{{ 'navigation.products'|trans }}</a>
+            </li>
+        </ul>
+
+        {# Language Selector #}
+        <ul class="navbar-nav">
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="languageDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-globe"></i> {{ app.request.locale|upper }}
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="languageDropdown">
+                    {% for locale in supported_locales %}
+                        <li><a class="dropdown-item {% if app.request.locale == locale %}active{% endif %}" href="{{ path(app.request.get('_route', 'home'), {'_locale': locale}) }}">{{ ('language.' ~ locale)|trans }}</a></li>
+                    {% endfor %}
+                </ul>
+            </li>
+        </ul>
+
+        <ul class="navbar-nav ms-auto d-flex flex-row" id="auth-section">
+            {% if app.user %}
+                <li class="nav-item active mx-2">
+                    <a class="nav-link" href="">{{ 'auth.hello'|trans }} <small class="text-secondary">({{ app.user.name }})</small></a>
+                </li>
+                <li class="nav-item active mx-2">
+                    <a class="nav-link" onclick="handleLogout(event)">{{ 'auth.logout'|trans }}</a>
+                </li>
+            {% else %}
+                <li class="nav-item active mx-2 d-flex">
+                    <a class="nav-link" href="{{ path('app_registration', {'_locale': app.request.locale}) }}">{{ 'auth.register'|trans }}</a>
+                    <a class="nav-link" href="{{ path('app_login', {'_locale': app.request.locale}) }}">{{ 'auth.login'|trans }}</a>
+                </li>
+            {% endif %}
+        </ul>
+        <ul class="navbar-nav ms-auto d-flex flex-row" id="cart">
+            <li class="nav-item active mx-2">
+                <a title="cart" class="nav-link" href="">
+                    <i class="bi bi-cart3"></i>
+                </a>
+            </li>
+        </ul>
+    </div>
+</nav>
+
+<script>
+    function updateAuthUI(user) {
+        const authSection = document.getElementById('auth-section');
+        if (authSection && !authSection.querySelector('.fs-2')) {
+            authSection.innerHTML = `
+            <li class="nav-item active mx-2">
+                    <a class="nav-link" href="">{{ 'auth.hello'|trans }} ${user.name}!</a>
+            </li>
+            <li class="nav-item active mx-2">
+                <a class="nav-link" href="" onclick="handleLogout(event)">{{ 'auth.logout'|trans }}</a>
+            </li>
+        `;
+        }
+    }
+</script>
+
+
+=== templates/cart.html.twig ===
+
+{# templates/cart_modal.html.twig #}
+<div class="modal fade" id="cartModal" tabindex="-1" aria-labelledby="cartModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="cartModalLabel">{{ 'cart.your_cart'|trans }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="cartContent">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                            <tr>
+                                <th>{{ 'cart.product'|trans }}</th>
+                                <th>{{ 'cart.price'|trans }}</th>
+                                <th>{{ 'cart.quantity'|trans }}</th>
+                                <th>{{ 'cart.total'|trans }}</th>
+                                <th></th>
+                            </tr>
+                            </thead>
+                            <tbody id="cartItems">
+                            <!-- Cart items will be dynamically inserted here -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="d-flex justify-content-end">
+                        <h4>{{ 'cart.total'|trans }}: <span id="cartTotal">0.00</span> €</h4>
+                    </div>
+                </div>
+                <div id="emptyCartMessage" class="text-center p-4" style="display: none;">
+                    <p>{{ 'cart.empty'|trans }}</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ 'cart.close'|trans }}</button>
+                <button type="button" class="btn btn-primary" id="proceedToCheckout">{{ 'cart.checkout'|trans }}</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const cartModal = new bootstrap.Modal(document.getElementById('cartModal'));
+        const cartBadge = document.createElement('span');
+        cartBadge.className = 'position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger';
+        document.querySelector('#cart .nav-link').appendChild(cartBadge);
+
+        function updateCart() {
+            fetch('/api/cart')
+                .then(response => response.json())
+                .then(data => {
+                    updateCartBadge(data.items_count);
+                    updateCartModal(data);
+                })
+                .catch(error => console.error('Error fetching cart:', error));
+        }
+
+        function updateCartBadge(count) {
+            cartBadge.textContent = count;
+            cartBadge.style.display = count > 0 ? 'block' : 'none';
+        }
+
+        function updateCartModal(cartData) {
+            const cartItems = document.getElementById('cartItems');
+            const emptyCartMessage = document.getElementById('emptyCartMessage');
+            const cartContent = document.getElementById('cartContent');
+            const cartTotal = document.getElementById('cartTotal');
+
+            if (cartData.items.length === 0) {
+                emptyCartMessage.style.display = 'block';
+                cartContent.style.display = 'none';
+                return;
+            }
+
+            emptyCartMessage.style.display = 'none';
+            cartContent.style.display = 'block';
+            cartItems.innerHTML = '';
+
+            cartData.items.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <img src="${item.image}" alt="${item.title}" style="width: 50px; height: 50px; object-fit: cover" class="me-2">
+                            <span>${item.title}</span>
+                        </div>
+                    </td>
+                    <td>${item.price.toFixed(2)} €</td>
+                    <td>
+                        <div class="input-group" style="width: 120px">
+                            <button class="btn btn-outline-secondary btn-sm" onclick="updateQuantity('${item.id}', ${item.quantity - 1})">-</button>
+                            <input type="number" class="form-control form-control-sm text-center" value="${item.quantity}"
+                                   onchange="updateQuantity('${item.id}', this.value)" min="0">
+                            <button class="btn btn-outline-secondary btn-sm" onclick="updateQuantity('${item.id}', ${item.quantity + 1})">+</button>
+                        </div>
+                    </td>
+                    <td>${item.amount.toFixed(2)} €</td>
+                    <td>
+                        <button class="btn btn-danger btn-sm" onclick="updateQuantity('${item.id}', 0)">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                `;
+                cartItems.appendChild(row);
+            });
+
+            cartTotal.textContent = cartData.total_amount.toFixed(2);
+        }
+
+        window.updateQuantity = function(productId, quantity) {
+            fetch('/api/cart/update', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    product_id: productId,
+                    quantity: parseInt(quantity)
+                })
+            })
+                .then(response => response.json())
+                .then(() => updateCart())
+                .catch(error => console.error('Error updating cart:', error));
+        };
+
+        document.querySelector('#cart .nav-link').addEventListener('click', function(e) {
+            e.preventDefault();
+            updateCart();
+            cartModal.show();
+        });
+
+        document.getElementById('proceedToCheckout').addEventListener('click', function() {
+            window.location.href = '/checkout';
+        });
+
+        // Initial cart load
+        updateCart();
+    });
+</script>
+
+{% include "cart.html.twig" %}
+
+
+=== src/Entity/ItemQuantity.php ===
+
+<?php
+
+namespace App\Entity;
+
+use Doctrine\ORM\Mapping as ORM;
+use Ramsey\Uuid\Uuid;
+use Ramsey\Uuid\UuidInterface;
+
+#[ORM\Entity(repositoryClass: "App\Repository\ItemQuantityRepository")]
+class ItemQuantity
+{
+    #[ORM\Id]
+    #[ORM\Column(type: 'uuid', unique: true)]
+    #[ORM\GeneratedValue(strategy: 'CUSTOM')]
+    #[ORM\CustomIdGenerator(class: 'Ramsey\Uuid\Doctrine\UuidGenerator')]
+    private UuidInterface $id;
+
+    #[ORM\ManyToOne(targetEntity: Cart::class, inversedBy: 'itemQuantities')]
+    #[ORM\JoinColumn(nullable: true)]
+    private $cart;
+
+    #[ORM\ManyToOne(targetEntity: Order::class, inversedBy: 'itemQuantities')]
+    #[ORM\JoinColumn(nullable: true)]
+    private $order;
+
+    #[ORM\ManyToOne(targetEntity: Product::class)]
+    #[ORM\JoinColumn(nullable: false)]
+    private $product;
+
+    #[ORM\Column(type: 'integer')]
+    private $quantity;
+
+    // Getters and setters...
+}
+
+
+=== src/Entity/Cart.php ===
+
+<?php
+
+namespace App\Entity;
+
+use Doctrine\ORM\Mapping as ORM;
+use Ramsey\Uuid\Uuid;
+use Ramsey\Uuid\UuidInterface;
+
+#[ORM\Entity(repositoryClass: "App\Repository\CartRepository")]
+class Cart
+{
+    #[ORM\Id]
+    #[ORM\Column(type: 'uuid', unique: true)]
+    #[ORM\GeneratedValue(strategy: 'CUSTOM')]
+    #[ORM\CustomIdGenerator(class: 'Ramsey\Uuid\Doctrine\UuidGenerator')]
+    private UuidInterface $id;
+
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'carts')]
+    #[ORM\JoinColumn(nullable: false)]
+    private $user;
+
+    #[ORM\OneToMany(targetEntity: ItemQuantity::class, mappedBy: 'cart')]
+    private $itemQuantities;
+
+    #[ORM\OneToOne(targetEntity: Checkout::class, mappedBy: 'cart')]
+    private $checkout;
+
+    // Getters and setters...
+}
+
+
+=== src/ApiResource/ProductController.php ===
+
+<?php
+
+namespace App\ApiResource;
+
+use ApiPlatform\Metadata\Get;
+use App\Entity\Product;
+use App\Repository\ProductRepository;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
+
+#[Get(
+    uriTemplate: '/products',
+    controller: 'App\ApiResource\ProductController::list',
+    name: 'api_products'
+)]
+#[Get(
+    uriTemplate: '/products/{id}',
+    controller: 'App\ApiResource\ProductController::get',
+    name: 'api_product'
+)]
+class ProductController extends AbstractController
+{
+    public function __construct(
+        private ProductRepository $productRepository
+    ) {}
+
+    public function list(Request $request, ProductRepository $productRepository): JsonResponse
+    {
+        $page = $request->query->getInt('page', 1);
+        $limit = $request->query->getInt('limit', 10);
+        $search = $request->query->get('search', '');
+        $locale = $request->query->get('locale', 'en');
+
+        $products = $productRepository->findBySearchPaginated($search, $page, $limit, $locale);
+        $totalProducts = $productRepository->countBySearch($search, $locale);
+
+        return $this->json([
+                               'products' => $products,
+                               'totalProducts' => $totalProducts,
+                               'currentPage' => $page,
+                               'totalPages' => ceil($totalProducts / $limit),
+                           ]);
+    }
+
+    #[Route('/{id}', name: 'get', methods: ['GET'])]
+    public function get(Product $product, ProductRepository $productRepository): JsonResponse
+    {
+        return $this->json($productRepository->getProductData($product));
+    }
+}
+
+
+=== src/ApiResource/CartController.php ===
+
+<?php
+
+namespace App\ApiResource;
+
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Put;
+use App\Entity\Cart;
+use App\Entity\ItemQuantity;
+use App\Repository\CartRepository;
+use App\Repository\ProductRepository;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Http\Attribute\CurrentUser;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
+use App\Entity\User;
+
+
+#[Get(
+    uriTemplate: '/carts',
+    controller: 'App\ApiResource\CartController::getCart',
+    security: "is_granted('ROLE_USER')",
+    name: 'api_get_cart'
+)]
+#[Post(
+    uriTemplate: '/carts/add',
+    controller: 'App\ApiResource\CartController::addToCart',
+    security: "is_granted('ROLE_USER')",
+    name: 'api_add_to_cart'
+)]
+#[Put(
+    uriTemplate: '/carts/update',
+    controller: 'App\ApiResource\CartController::updateCart',
+    security: "is_granted('ROLE_USER')",
+    name: 'api_update_cart'
+)]
+
+class CartController extends AbstractController
+{
+    public function __construct(
+        private EntityManagerInterface $entityManager,
+        private CartRepository $cartRepository,
+        private ProductRepository $productRepository
+    ) {}
+
+    public function getCart(#[CurrentUser] User $user): JsonResponse
+    {
+        $activeCart = $this->cartRepository->findActiveCartByUser($user);
+
+        if (!$activeCart) {
+            $activeCart = new Cart();
+            $activeCart->setUser($user);
+            $this->entityManager->persist($activeCart);
+            $this->entityManager->flush();
+        }
+
+        $items = [];
+        $totalAmount = 0;
+
+        foreach ($activeCart->getItemQuantities() as $itemQuantity) {
+            $product = $itemQuantity->getProduct();
+            $amount = $product->getOxprice() * $itemQuantity->getQuantity();
+            $totalAmount += $amount;
+
+            $items[] = [
+                'id' => $product->getId(),
+                'title' => $product->getTitleEn(), // You might want to make this dynamic based on locale
+                'price' => $product->getOxprice(),
+                'quantity' => $itemQuantity->getQuantity(),
+                'amount' => $amount,
+                'image' => $product->getImage()
+            ];
+        }
+
+        return $this->json([
+                               'cart_id' => $activeCart->getId(),
+                               'items' => $items,
+                               'total_amount' => $totalAmount,
+                               'items_count' => count($items)
+                           ]);
+    }
+
+    public function addToCart(#[CurrentUser] User $user, Request $request): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+        $productId = $data['product_id'] ?? null;
+        $quantity = $data['quantity'] ?? 1;
+
+        if (!$productId) {
+            return $this->json(['error' => 'Product ID is required'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $product = $this->productRepository->find($productId);
+        if (!$product) {
+            return $this->json(['error' => 'Product not found'], Response::HTTP_NOT_FOUND);
+        }
+
+        if ($product->getStock() < $quantity) {
+            return $this->json(['error' => 'Insufficient stock'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $activeCart = $this->cartRepository->findActiveCartByUser($user);
+        if (!$activeCart) {
+            $activeCart = new Cart();
+            $activeCart->setUser($user);
+            $this->entityManager->persist($activeCart);
+        }
+
+        $itemQuantity = null;
+        foreach ($activeCart->getItemQuantities() as $iq) {
+            if ($iq->getProduct()->getId() === $product->getId()) {
+                $itemQuantity = $iq;
+                break;
+            }
+        }
+
+        if ($itemQuantity) {
+            $itemQuantity->setQuantity($itemQuantity->getQuantity() + $quantity);
+        } else {
+            $itemQuantity = new ItemQuantity();
+            $itemQuantity->setCart($activeCart);
+            $itemQuantity->setProduct($product);
+            $itemQuantity->setQuantity($quantity);
+            $this->entityManager->persist($itemQuantity);
+        }
+
+        $this->entityManager->flush();
+
+        return $this->json([
+                               'message' => 'Product added to cart successfully',
+                               'cart_id' => $activeCart->getId()
+                           ]);
+    }
+
+    public function updateCart(#[CurrentUser] User $user, Request $request): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+        $productId = $data['product_id'] ?? null;
+        $quantity = $data['quantity'] ?? 0;
+
+        if (!$productId) {
+            return $this->json(['error' => 'Product ID is required'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $activeCart = $this->cartRepository->findActiveCartByUser($user);
+        if (!$activeCart) {
+            return $this->json(['error' => 'Cart not found'], Response::HTTP_NOT_FOUND);
+        }
+
+        $itemQuantity = null;
+        foreach ($activeCart->getItemQuantities() as $iq) {
+            if ($iq->getProduct()->getId() === $productId) {
+                $itemQuantity = $iq;
+                break;
+            }
+        }
+
+        if (!$itemQuantity) {
+            return $this->json(['error' => 'Product not found in cart'], Response::HTTP_NOT_FOUND);
+        }
+
+        if ($quantity <= 0) {
+            $this->entityManager->remove($itemQuantity);
+        } else {
+            if ($itemQuantity->getProduct()->getStock() < $quantity) {
+                return $this->json(['error' => 'Insufficient stock'], Response::HTTP_BAD_REQUEST);
+            }
+            $itemQuantity->setQuantity($quantity);
+        }
+
+        $this->entityManager->flush();
+
+        return $this->json(['message' => 'Cart updated successfully']);
+    }
+}
