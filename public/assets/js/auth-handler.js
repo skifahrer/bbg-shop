@@ -59,8 +59,10 @@ function checkTokenAndUpdateUI() {
             return;
         }
 
+        const locale = getCurrentLocale();
+
         // Fetch user data and update UI
-        fetch('/api/users/me', {
+        fetch(`/api/users/me?locale=${locale}`, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }

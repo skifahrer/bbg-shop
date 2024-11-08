@@ -41,9 +41,7 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const cartModal = new bootstrap.Modal(document.getElementById('cartModal'));
-        const cartBadge = document.createElement('span');
-        cartBadge.className = 'position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger';
-        document.querySelector('#cart .nav-link').appendChild(cartBadge);
+        const cartBadge = document.getElementById('cart-count');
 
         function updateCart() {
             const token = sessionStorage.getItem('jwt');
@@ -64,7 +62,6 @@
 
         function updateCartBadge(count) {
             cartBadge.textContent = count;
-            cartBadge.style.display = count > 0 ? 'block' : 'none';
         }
 
         function updateCartModal(cartData) {

@@ -66,36 +66,14 @@ class UserController extends AbstractController
 
         return $this->json([
                                'message' => 'User registered successfully',
-                               'user' => [
-                                   'id' => $user->getId(),
-                                   'name' => $user->getName(),
-                                   'family' => $user->getFamily(),
-                                   'email' => $user->getEmail(),
-                                   'roles' => $user->getRoles(),
-                                   // Only return cart IDs instead of full cart objects
-                                   'carts' => array_map(function($cart) {
-                                       return [
-                                           'id' => $cart->getId(),
-                                           'items' => array_map(function($item) {
-                                               return [
-                                                   'id' => $item->getId(),
-                                                   'product' => [
-                                                       'id' => $item->getProduct()->getId(),
-                                                       'name' => $item->getProduct()->getName(),
-                                                       'price' => $item->getProduct()->getPrice()
-                                                   ],
-                                                   'quantity' => $item->getQuantity()
-                                               ];
-                                           }, $cart->getItemQuantities()->toArray())
-                                       ];
-                                   }, $user->getCarts()->toArray())
-                               ],
                                'jwt' => $token
                            ], Response::HTTP_CREATED, [], ['groups' => ['user:read']]);
     }
 
-    public function me(#[CurrentUser] User $user): JsonResponse
+    public function me(#[CurrentUser] User $user, Request $request): JsonResponse
     {
+        $locale = $request->query->get('locale', 'en');
+
         return $this->json([
                                'user' => [
                                    'id' => $user->getId(),
@@ -104,16 +82,16 @@ class UserController extends AbstractController
                                    'family' => $user->getFamily(),
                                    'roles' => $user->getRoles(),
                                    'shipping_address' => $user->getShippingAddress(),
-                                   'carts' => array_map(function($cart) {
+                                   'carts' => array_map(function($cart) use ($locale) {
                                        return [
                                            'id' => $cart->getId(),
-                                           'items' => array_map(function($item) {
+                                           'items' => array_map(function($item) use ($locale) {
                                                return [
                                                    'id' => $item->getId(),
                                                    'product' => [
                                                        'id' => $item->getProduct()->getId(),
-                                                       'name' => $item->getProduct()->getName(),
-                                                       'price' => $item->getProduct()->getPrice()
+                                                       'name' => $item->getProduct()->getLocalizedTitle($locale),
+                                                       'price' => $item->getProduct()->getOxprice()
                                                    ],
                                                    'quantity' => $item->getQuantity()
                                                ];

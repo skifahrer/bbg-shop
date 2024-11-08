@@ -52,6 +52,10 @@
             <div class="modal-body">
                 <!-- Content will be dynamically inserted here -->
             </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary add-to-cart-modal">{{ 'cart.add_to_cart'|trans }}</button>
+            </div>
         </div>
     </div>
 </div>
@@ -69,6 +73,7 @@
         let currentPage = 1;
         const limit = 8;
         let currentSearch = '';
+        let currentProductId = null;
 
         // Initialize Bootstrap modal
         if (typeof bootstrap !== 'undefined') {
@@ -88,9 +93,38 @@
             console.error('Bootstrap is not loaded!');
         }
 
-        function getCurrentLocale() {
-            const productBookshelf = document.getElementById('productBookshelf');
-            return (productBookshelf.dataset.locale || 'en').toLowerCase();
+        function addToCart(productId) {
+            const token = sessionStorage.getItem('jwt');
+            if (!token) {
+                window.location.href = `/${(productBookshelf.dataset.locale || 'en')}/login`;
+                return;
+            }
+
+            fetch('/api/cart/add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    product_id: productId,
+                    quantity: 1
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.message) {
+                        // Trigger cart update
+                        const cartUpdateEvent = new Event('cartUpdated');
+                        document.dispatchEvent(cartUpdateEvent);
+
+                        // Close modal if it's open
+                        if (productModal && productModal._isShown) {
+                            productModal.hide();
+                        }
+                    }
+                })
+                .catch(error => console.error('Error adding to cart:', error));
         }
 
         function loadProducts(page, search = '') {
@@ -126,9 +160,12 @@
                             ${product.stock <= 0 ? '{{ 'product.out_of_stock'|trans }}' : '{{ 'product.stock'|trans }}: ' + product.stock}
                         </p>
                         <p class="product-price">${product.oxprice} €</p>
-                        <button class="btn btn-primary btn-block view-details">
-                            {{ 'product.details'|trans }}
-                        </button>
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-success add-to-cart" data-product-id="${product.id}"
+                                    ${product.stock <= 0 ? 'disabled' : ''}>
+                                {{ 'cart.add_to_cart'|trans }}
+                            </button>
+                        </div>
                     </div>
                 `;
                 productGrid.appendChild(productCard);
@@ -179,12 +216,7 @@
                     const browserLang = (currentLocale || 'en').toLowerCase();
                     const titleKey = `title_${browserLang}`;
 
-                    let productTitle = "";
-                    if (data[titleKey]) {
-                        productTitle = data[titleKey];
-                    } else {
-                        productTitle = 'Title not available';
-                    }
+                    let productTitle = data[titleKey] || 'Title not available';
 
                     modalBody.innerHTML = `
                     <div class="row">
@@ -205,6 +237,15 @@
                         </div>
                     </div>
                 `;
+
+                    const addToCartBtn = modalElement.querySelector('.add-to-cart-modal');
+                    if (data.stock <= 0) {
+                        addToCartBtn.disabled = true;
+                        addToCartBtn.textContent = '{{ 'product.out_of_stock'|trans }}';
+                    } else {
+                        addToCartBtn.disabled = false;
+                        addToCartBtn.textContent = '{{ 'cart.add_to_cart'|trans }}';
+                    }
 
                     if (productModal) {
                         productModal.show();
@@ -244,6 +285,25 @@
         }
 
         // Event Listeners
+        productGrid.addEventListener('click', (e) => {
+            const detailsButton = e.target.closest('.product-details');
+            const addToCartButton = e.target.closest('.add-to-cart');
+
+            if (detailsButton) {
+                const productId = detailsButton.dataset.productId;
+                showProductDetails(productId);
+            } else if (addToCartButton) {
+                const productId = addToCartButton.dataset.productId;
+                addToCart(productId);
+            }
+        });
+
+        modalElement.querySelector('.add-to-cart-modal').addEventListener('click', () => {
+            if (currentProductId) {
+                addToCart(currentProductId);
+            }
+        });
+
         prevPageButtons.forEach(button => {
             button.addEventListener('click', () => {
                 if (currentPage > 1) {

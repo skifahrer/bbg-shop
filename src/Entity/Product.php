@@ -235,4 +235,17 @@ class Product
     {
         return $this->features_json;
     }
+
+    public function getLocalizedTitle(string $locale = 'en'): string
+    {
+        return match ($locale) {
+            'sk' => $this->getTitleSk(),
+            'sl' => $this->getTitleSl(),
+            'hu' => $this->getTitleHu(),
+            'hr' => $this->getTitleHr(),
+            'ro' => $this->getTitleRo(),
+            'bg' => $this->getTitleBg(),
+            default => $this->getTitleEn(),
+        };
+    }
 }

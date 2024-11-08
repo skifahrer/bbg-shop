@@ -46,7 +46,6 @@ class ProductController extends AbstractController
                            ]);
     }
 
-    #[Route('/{id}', name: 'get', methods: ['GET'])]
     public function get(Product $product, ProductRepository $productRepository): JsonResponse
     {
         return $this->json($productRepository->getProductData($product));

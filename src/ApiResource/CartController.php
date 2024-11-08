@@ -71,8 +71,7 @@ class CartController extends AbstractController
                 'title' => $product->getTitleEn(), // You might want to make this dynamic based on locale
                 'price' => $product->getOxprice(),
                 'quantity' => $itemQuantity->getQuantity(),
-                'amount' => $amount,
-                'image' => $product->getImage()
+                'amount' => $amount
             ];
         }
 

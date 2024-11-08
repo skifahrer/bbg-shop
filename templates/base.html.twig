@@ -38,6 +38,14 @@
     // Initialize auth when DOM is loaded
     document.addEventListener('DOMContentLoaded', initializeAuth);
 </script>
+
+<script>
+    function getCurrentLocale() {
+        const productBookshelf = document.getElementById('productBookshelf');
+        return (productBookshelf.dataset.locale || 'en').toLowerCase();
+    }
+</script>
+
 {% block javascripts %}{% endblock %}
 </body>
 </html>
