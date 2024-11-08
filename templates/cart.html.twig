@@ -23,7 +23,7 @@
                             </tbody>
                         </table>
                     </div>
-                    <div class="d-flex justify-content-end" id="cartTotal" style="display: none;">
+                    <div class="d-flex justify-content-end" id="cartTotal" style="display: none !important;">
                         <h4>{{ 'cart.total'|trans }}: <span id="cartTotalAmount">0.00</span> €</h4>
                     </div>
                 </div>
@@ -48,7 +48,7 @@
             if (!token) {
                 document.getElementById('emptyCartMessage').style.display = 'block';
                 document.getElementById('cartTable').style.display = 'none';
-                document.getElementById('cartTotal').style.display = 'none';
+                document.getElementById('cartTotal').style.display = 'none !important';
                 document.getElementById('proceedToCheckout').style.display = 'none';
                 return;
             }
