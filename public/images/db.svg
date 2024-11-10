@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 600">
+    <!-- Styles -->
+    <defs>
+        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#666"/>
+        </marker>
+    </defs>
+
+    <!-- Entities -->
+    <!-- User -->
+    <rect x="50" y="200" width="160" height="140" rx="5" fill="#e3f2fd" stroke="#1976d2" stroke-width="2"/>
+    <text x="130" y="230" text-anchor="middle" font-family="Arial" font-weight="bold" font-size="16">User</text>
+    <line x1="60" y1="240" x2="200" y2="240" stroke="#1976d2" stroke-width="1"/>
+    <text x="65" y="260" font-family="Arial" font-size="12">id (UUID)</text>
+    <text x="65" y="280" font-family="Arial" font-size="12">name</text>
+    <text x="65" y="300" font-family="Arial" font-size="12">email</text>
+    <text x="65" y="320" font-family="Arial" font-size="12">password</text>
+
+    <!-- Product -->
+    <rect x="750" y="200" width="160" height="140" rx="5" fill="#e3f2fd" stroke="#1976d2" stroke-width="2"/>
+    <text x="830" y="230" text-anchor="middle" font-family="Arial" font-weight="bold" font-size="16">Product</text>
+    <line x1="760" y1="240" x2="900" y2="240" stroke="#1976d2" stroke-width="1"/>
+    <text x="765" y="260" font-family="Arial" font-size="12">id (UUID)</text>
+    <text x="765" y="280" font-family="Arial" font-size="12">item</text>
+    <text x="765" y="300" font-family="Arial" font-size="12">oxprice</text>
+    <text x="765" y="320" font-family="Arial" font-size="12">stock</text>
+
+    <!-- Cart -->
+    <rect x="400" y="50" width="160" height="120" rx="5" fill="#e3f2fd" stroke="#1976d2" stroke-width="2"/>
+    <text x="480" y="80" text-anchor="middle" font-family="Arial" font-weight="bold" font-size="16">Cart</text>
+    <line x1="410" y1="90" x2="550" y2="90" stroke="#1976d2" stroke-width="1"/>
+    <text x="415" y="110" font-family="Arial" font-size="12">id (UUID)</text>
+
+    <!-- Order -->
+    <rect x="400" y="400" width="160" height="140" rx="5" fill="#e3f2fd" stroke="#1976d2" stroke-width="2"/>
+    <text x="480" y="430" text-anchor="middle" font-family="Arial" font-weight="bold" font-size="16">Order</text>
+    <line x1="410" y1="440" x2="550" y2="440" stroke="#1976d2" stroke-width="1"/>
+    <text x="415" y="460" font-family="Arial" font-size="12">id (UUID)</text>
+    <text x="415" y="480" font-family="Arial" font-size="12">finalPrice</text>
+    <text x="415" y="500" font-family="Arial" font-size="12">status</text>
+
+    <!-- ItemQuantity -->
+    <rect x="400" y="200" width="160" height="120" rx="5" fill="#e3f2fd" stroke="#1976d2" stroke-width="2"/>
+    <text x="480" y="230" text-anchor="middle" font-family="Arial" font-weight="bold" font-size="16">ItemQuantity</text>
+    <line x1="410" y1="240" x2="550" y2="240" stroke="#1976d2" stroke-width="1"/>
+    <text x="415" y="260" font-family="Arial" font-size="12">id (UUID)</text>
+    <text x="415" y="280" font-family="Arial" font-size="12">quantity</text>
+
+    <!-- Checkout -->
+    <rect x="750" y="400" width="160" height="140" rx="5" fill="#e3f2fd" stroke="#1976d2" stroke-width="2"/>
+    <text x="830" y="430" text-anchor="middle" font-family="Arial" font-weight="bold" font-size="16">Checkout</text>
+    <line x1="760" y1="440" x2="900" y2="440" stroke="#1976d2" stroke-width="1"/>
+    <text x="765" y="460" font-family="Arial" font-size="12">id (UUID)</text>
+    <text x="765" y="480" font-family="Arial" font-size="12">paymentType</text>
+    <text x="765" y="500" font-family="Arial" font-size="12">createdAt</text>
+
+    <!-- Relationships -->
+    <!-- User -> Cart -->
+    <line x1="210" y1="240" x2="400" y2="110" stroke="#666" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+    <text x="280" y="150" font-family="Arial" font-size="12">1:n</text>
+
+    <!-- User -> Order -->
+    <line x1="210" y1="300" x2="400" y2="450" stroke="#666" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+    <text x="280" y="400" font-family="Arial" font-size="12">1:n</text>
+
+    <!-- Cart -> ItemQuantity -->
+    <line x1="480" y1="170" x2="480" y2="200" stroke="#666" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+    <text x="490" y="190" font-family="Arial" font-size="12">1:n</text>
+
+    <!-- Order -> ItemQuantity -->
+    <line x1="480" y1="400" x2="480" y2="320" stroke="#666" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+    <text x="490" y="370" font-family="Arial" font-size="12">1:n</text>
+
+    <!-- ItemQuantity -> Product -->
+    <line x1="560" y1="260" x2="750" y2="260" stroke="#666" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+    <text x="650" y="250" font-family="Arial" font-size="12">n:1</text>
+
+    <!-- Order -> Checkout -->
+    <line x1="560" y1="470" x2="750" y2="470" stroke="#666" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+    <text x="650" y="460" font-family="Arial" font-size="12">1:1</text>
+
+    <!-- Cart -> Checkout -->
+    <line x1="560" y1="110" x2="830" y2="400" stroke="#666" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+    <text x="650" y="300" font-family="Arial" font-size="12">1:1</text>
+</svg>
