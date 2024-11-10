@@ -15,8 +15,14 @@ If you are running it first time, run the seeder to load the products:
   docker compose --profile seeder run seeder
 ```
 
+You can access the app on [`localhost`](http://localhost) or alternatively on [`localhost:8000`](http://localhost:8000)
 
 ## Features
+Frontend is built with pure Javascript, html, css and symfony twig templates. We are storing frontend in twig templates for better translations management. Frontend communicates with backend through API. Backend is built with Symfony and Api Platform extension. It uses Doctrine ORM for database communication. Database is a simple relational database with 6 tables. 
+
+Here is simplified example of an flow diagram of the application:
+![Flow Diagram](/public/images/diagram.png)
+
 #### Key features on FE:
 - user registration
 - user login and logout
@@ -39,19 +45,20 @@ If you are running it first time, run the seeder to load the products:
 - every request that is related to user data contains JWT token in header and is authorized via JWT guard
 - api documentation can be found on `/api/` route which is automatically generated from code by Api Platform. Documentation is swagger based and can be used for testing API endpoints.
 
-## Database structure
+## Development
+If you are going to develop this application, you need to have installed Symfony CLI, Composer and Docker on your machine. I recommend running the app localy in watch mode with Symfony CLI and database via docker compose.
+
+### Database structure
 For DB structure see `src/Entity` folder. We use Doctrine ORM for setting up the database structure. This approach has advantage of having schema on one place and everything is generated from it. Generating migrations is done through Symfony CLI.
 ![Database Diagram](/public/images/db.svg)
 
 Our DB has simple structure:
-`User` can have multiple `Cart`, multiple `Checkout` and multiple `Order`. 
+`User` can have multiple `Cart`, multiple `Checkout` and multiple `Order`.
 `Cart` can have only one `User`, but can contain multiple `ItemQuantity` and can be part of one `Checkout`.
 `Checkout` can have only one `Cart` and one `User`. It has also `Shipping` and `Invoice` `Address`.
 `Order` can have only one `User` and can contain multiple `ItemQuantity`. It has also `FinalPrice` and `Shipping` and `Invoice` `Address`. It is similar to `Checkout` but it is immutable, and contains maximum data.
 `ItemQuantity` can have only one `Product` with its quantity. It can be part of one `Cart` and one `Order`.
 
-## Development
-If you are going to develop this application, you need to have installed Symfony CLI, Composer and Docker on your machine. I recommend running the app localy in watch mode with Symfony CLI and database via docker compose.
 
 ### Structure of the app
 
@@ -78,6 +85,11 @@ In the `/src` you can have find:
 - `Security` - contains all the security classes (guards, authenticators mostly for JWT)
 - `Twig` - contains all the twig extensions (we use for locale change)
 
+### Endpoint documentation
+You can find the API documentation on `/api` route. It is automatically generated from the code by Api Platform. It is swagger based and can be used for testing API endpoints.
+localhost:8000/api or localhost/api
+
+alternatively on [`localhost/api`](http://localhost/api) or on [`localhost:8000/api`](http://localhost:8000/api)  
 
 ### Requirements
 Here you will find how to instal all the requirements for the app.
@@ -139,6 +151,15 @@ Here you will find how to start the app for development.
 
 5. Open the app in your browser on `localhost:8000`
 
+
+### Running tests
+Here you will find how to run the tests.
+
+1. Run the tests:
+
+```bash
+    symfony php bin/phpunit
+```
 
 #### Good one time commands for development
 Here I am addinf some useful commands for development.
