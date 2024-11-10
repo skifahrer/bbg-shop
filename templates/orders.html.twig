@@ -1,3 +1,15 @@
+<!-- Status translations mapping -->
+<script>
+    const STATUS_TRANSLATIONS = {
+        pending: '{{ "statuses.pending"|trans }}',
+        paid: '{{ "statuses.paid"|trans }}',
+        processing: '{{ "statuses.processing"|trans }}',
+        completed: '{{ "statuses.completed"|trans }}',
+        shipped: '{{ "statuses.shipped"|trans }}',
+        cancelled: '{{ "statuses.cancelled"|trans }}'
+    };
+</script>
+
 <!-- Orders Modal -->
 <div class="modal fade" id="ordersModal" tabindex="-1" aria-labelledby="ordersModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl">
@@ -107,7 +119,7 @@
     }
 
     function getStatusTranslation(status) {
-        return `{{ 'statuses.${status.toLowerCase()}'|trans }}`;
+        return STATUS_TRANSLATIONS[status.toLowerCase()] || status;
     }
 
     function formatPrice(price) {
