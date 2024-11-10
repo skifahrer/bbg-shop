@@ -63,6 +63,7 @@ common:
     edit: 'Uredi'
     delete: 'Izbriši'
     confirm: 'Potvrdi'
+    close: 'Zatvori'
 language:
     en: 'Engleski'
     sk: 'Slovački'
@@ -90,6 +91,7 @@ checkout:
     order_summary: 'Sažetak narudžbe'
     total: 'Ukupno'
     place_order: 'Naruči'
+    order_placed: 'Narudžba je poslana'
 orders:
     list: 'Popis narudžbi'
     order: 'Narudžba'

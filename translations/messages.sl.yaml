@@ -63,6 +63,7 @@ common:
     edit: 'Uredi'
     delete: 'Izbriši'
     confirm: 'Potrdi'
+    close: 'Zapri'
 language:
     en: 'Angleščina'
     sk: 'Slovaščina'
@@ -90,6 +91,7 @@ checkout:
     order_summary: 'Povzetek naročila'
     total: 'Skupaj'
     place_order: 'Oddaj naročilo'
+    order_placed: 'Naročilo oddano'
 orders:
     list: 'Seznam naročil'
     order: 'Naročilo'

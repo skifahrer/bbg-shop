@@ -63,6 +63,7 @@ common:
     edit: 'Editare'
     delete: 'Ștergere'
     confirm: 'Confirmă'
+    close: 'Închide'
 language:
     en: 'Engleză'
     sk: 'Slovacă'
@@ -90,6 +91,7 @@ checkout:
     order_summary: 'Rezumatul comenzii'
     total: 'Total'
     place_order: 'Plasează comanda'
+    order_placed: 'Comanda plasată'
 orders:
     list: 'Lista de comenzi'
     order: 'Comandă'

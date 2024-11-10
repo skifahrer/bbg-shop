@@ -63,6 +63,7 @@ common:
     edit: 'Upraviť'
     delete: 'Vymazať'
     confirm: 'Potvrdiť'
+    close: 'Zavrieť'
 language:
     en: 'Angličtina'
     sk: 'Slovenčina'
@@ -90,6 +91,7 @@ checkout:
     order_summary: 'Zhrnutie objednávky'
     total: 'Spolu'
     place_order: 'Objednať'
+    order_placed: 'Objednávka odoslaná'
 orders:
     list: 'Zoznam objednávok'
     order: 'Objednávka'

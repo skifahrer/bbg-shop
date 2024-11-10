@@ -63,6 +63,7 @@ common:
     edit: 'Szerkesztés'
     delete: 'Törlés'
     confirm: 'Megerősítés'
+    close: 'Bezárás'
 language:
     en: 'Angol'
     sk: 'Szlovák'
@@ -90,6 +91,7 @@ checkout:
     order_summary: 'Rendelés összegzése'
     total: 'Összesen'
     place_order: 'Rendelés leadása'
+    order_placed: 'Rendelés leadva'
 orders:
     list: 'Rendelések listája'
     order: 'Rendelés'

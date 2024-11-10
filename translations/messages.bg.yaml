@@ -63,6 +63,7 @@ common:
     edit: 'Редактирай'
     delete: 'Изтрий'
     confirm: 'Потвърди'
+    close: 'Затвори'
 language:
     en: 'Английски'
     sk: 'Словашки'
@@ -90,6 +91,7 @@ checkout:
     order_summary: 'Обобщение на поръчката'
     total: 'Общо'
     place_order: 'Поръчай'
+    order_placed: 'Поръчката е направена'
 orders:
     list: 'Списък с поръчки'
     order: 'Поръчка'
