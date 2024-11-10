@@ -198,3 +198,8 @@ Here are some useful commands for development:
 - No product management page; products are seeded in the database
 - Limited product image functionality; only one image in the public folder
 - Only one unit test provided as an example
+- Code was not linted nor formatted
+
+## Github Actions
+The app includes a Github Actions workflow for running tests on push and pull requests. The workflow is located in the `.github/workflows` folder.
+There is an `dependabot.yml` file for automatic dependency updates and `lint.yml` for code linting.

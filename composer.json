@@ -1,4 +1,6 @@
 {
+    "name": "skifahrer/bbg-shop",
+    "description": "BBG Shop",
     "type": "project",
     "license": "proprietary",
     "minimum-stability": "stable",
