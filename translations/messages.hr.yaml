@@ -103,3 +103,10 @@ orders:
     subtotal: 'Međuzbroj'
     orderInfo: 'Informacije o narudžbi'
     items: 'Artikli'
+statuses:
+    pending: 'Na čekanju'
+    paid: 'Plaćeno'
+    processing: 'U obradi'
+    completed: 'Dovršeno'
+    shipped: 'Poslano'
+    cancelled: 'Otkazano'

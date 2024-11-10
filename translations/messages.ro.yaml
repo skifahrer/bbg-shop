@@ -103,3 +103,10 @@ orders:
     subtotal: 'Subtotal'
     orderInfo: 'Informații despre comandă'
     items: 'Produse'
+statuses:
+    pending: 'În așteptare'
+    paid: 'Plătit'
+    processing: 'În procesare'
+    completed: 'Finalizat'
+    shipped: 'Expediat'
+    cancelled: 'Anulat'

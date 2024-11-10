@@ -103,3 +103,10 @@ orders:
     subtotal: 'Vmesni seštevek'
     orderInfo: 'Informacije o naročilu'
     items: 'Izdelki'
+statuses:
+    pending: 'V čakanju'
+    paid: 'Plačano'
+    processing: 'V obdelavi'
+    completed: 'Dokončano'
+    shipped: 'Poslano'
+    cancelled: 'Preklicano'

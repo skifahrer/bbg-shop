@@ -103,3 +103,10 @@ orders:
     subtotal: 'Részösszeg'
     orderInfo: 'Rendelési információk'
     items: 'Termékek'
+statuses:
+    pending: 'Függőben'
+    paid: 'Fizetve'
+    processing: 'Feldolgozás alatt'
+    completed: 'Befejezve'
+    shipped: 'Elküldve'
+    cancelled: 'Törölve'

@@ -103,3 +103,10 @@ orders:
     subtotal: 'Междинна сума'
     orderInfo: 'Информация за поръчката'
     items: 'Артикули'
+statuses:
+    pending: 'В очакване'
+    paid: 'Платено'
+    processing: 'В процес на обработка'
+    completed: 'Завършено'
+    shipped: 'Изпратено'
+    cancelled: 'Отменено'

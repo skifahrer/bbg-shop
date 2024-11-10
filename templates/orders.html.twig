@@ -37,21 +37,53 @@
         background-color: #fff3cd;
         color: #856404;
     }
+    .status-paid {
+        background-color: #e2e3e5;
+        color: #383d41;
+    }
     .status-processing {
         background-color: #cce5ff;
         color: #004085;
+    }
+    .status-completed {
+        background-color: #d1e7dd;
+        color: #0f5132;
     }
     .status-shipped {
         background-color: #d4edda;
         color: #155724;
     }
-    .status-delivered {
-        background-color: #d1e7dd;
-        color: #0f5132;
-    }
     .status-cancelled {
         background-color: #f8d7da;
         color: #721c24;
+    }
+    .order-price {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #2c3e50;
+        padding: 0.25rem 0.5rem;
+        background-color: #f8f9fa;
+        border-radius: 0.375rem;
+    }
+    .order-item {
+        transition: background-color 0.15s ease-in-out;
+    }
+    .order-item:hover {
+        background-color: #f8f9fa;
+    }
+    .order-details-section {
+        background-color: #f8f9fa;
+        border-radius: 0.5rem;
+        padding: 1.25rem;
+        margin-bottom: 1.5rem;
+    }
+    .order-items-table {
+        background-color: #fff;
+        border-radius: 0.5rem;
+    }
+    .table-total-row {
+        background-color: #f8f9fa;
+        font-weight: 600;
     }
 </style>
 
@@ -65,19 +97,33 @@
     function getStatusBadgeClass(status) {
         const statusMap = {
             pending: 'status-pending',
+            paid: 'status-paid',
             processing: 'status-processing',
+            completed: 'status-completed',
             shipped: 'status-shipped',
-            delivered: 'status-delivered',
             cancelled: 'status-cancelled'
         };
         return statusMap[status.toLowerCase()] || '';
+    }
+
+    function getStatusTranslation(status) {
+        return `{{ 'statuses.${status.toLowerCase()}'|trans }}`;
+    }
+
+    function formatPrice(price) {
+        return new Intl.NumberFormat('de-DE', {
+            style: 'currency',
+            currency: 'EUR',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }).format(price);
     }
 
     function formatAddress(addressString) {
         try {
             const address = JSON.parse(addressString);
             return `
-                <div class="mb-2">
+                <div class="address-block mb-2">
                     <p class="fw-medium mb-1">${address.name}</p>
                     <p class="mb-1">${address.street}</p>
                     <p class="mb-1">${address.city}, ${address.postal_code}</p>
@@ -90,24 +136,28 @@
 
     function showOrdersList() {
         const ordersListEl = document.getElementById('ordersList');
-        // Reset columns to initial state
         document.getElementById('ordersListColumn').className = 'col-12';
         document.getElementById('orderDetailsColumn').className = 'col-6 d-none border-start';
 
         const ordersHtml = userOrders.map(order => `
-            <div class="list-group-item">
-                <div class="d-flex justify-content-between align-items-start mb-2">
+            <div class="list-group-item order-item">
+                <div class="d-flex justify-content-between align-items-start mb-3">
                     <div>
                         <h5 class="mb-1">{{ 'orders.order'|trans }} #${order.id}</h5>
-                        <p class="text-muted mb-1">${order.createdAt}</p>
+                        <p class="text-muted mb-0">
+                            <i class="bi bi-calendar3"></i> ${new Date(order.createdAt).toLocaleDateString()}
+                        </p>
                     </div>
                     <span class="status-badge ${getStatusBadgeClass(order.status)}">
-                        ${order.status}
+                        ${getStatusTranslation(order.status)}
                     </span>
                 </div>
                 <div class="d-flex justify-content-between align-items-center">
-                    <p class="mb-0 fw-bold">{{ 'orders.total'|trans }}: ${order.finalPrice} Eur</p>
-                    <button class="btn btn-primary btn-sm" onclick="showOrderDetails('${order.id}')">
+                    <span class="order-price">
+                        <i class="bi bi-tag-fill me-1"></i>
+                        ${formatPrice(order.finalPrice)}
+                    </span>
+                    <button class="btn btn-outline-primary btn-sm" onclick="showOrderDetails('${order.id}')">
                         {{ 'orders.details'|trans }}
                         <i class="bi bi-arrow-right ms-1"></i>
                     </button>
@@ -122,26 +172,24 @@
     async function showOrderDetails(orderId) {
         const token = sessionStorage.getItem('jwt');
         try {
-            // Show loading spinner in details column
             const orderDetailsContent = document.getElementById('orderDetailsContent');
             orderDetailsContent.innerHTML = `
-                <div class="text-center">
-                    <div class="spinner-border" role="status">
+                <div class="text-center p-4">
+                    <div class="spinner-border text-primary" role="status">
                         <span class="visually-hidden">Loading...</span>
                     </div>
                 </div>
             `;
 
-            // Show details column and adjust list column width
             document.getElementById('ordersListColumn').className = 'col-6';
             document.getElementById('orderDetailsColumn').className = 'col-6 border-start';
 
-            // Fetch order details from API
             const response = await fetch(`/api/orders/${orderId}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
             });
+
             if (!response.ok) {
                 throw new Error('Failed to fetch order details');
             }
@@ -149,63 +197,101 @@
             const data = await response.json();
             const order = data.order;
 
+            // Calculate order total
+            const subtotal = order.items.reduce((sum, item) =>
+                sum + (item.product.price * item.quantity), 0
+            );
+
             // Generate items HTML
             const itemsHtml = order.items.map(item => `
                 <tr>
-                    <td>${item.product.name}</td>
-                    <td>${item.quantity}</td>
-                    <td>${item.product.price} Eur</td>
-                    <td>${(item.product.price * item.quantity).toFixed(2)} Eur</td>
+                    <td>
+                        <div class="fw-medium">${item.product.name}</div>
+                        ${item.product.sku ? `<small class="text-muted">SKU: ${item.product.sku}</small>` : ''}
+                    </td>
+                    <td class="text-center">${item.quantity}</td>
+                    <td class="text-end">${formatPrice(item.product.price)}</td>
+                    <td class="text-end">${formatPrice(item.product.price * item.quantity)}</td>
                 </tr>
             `).join('');
 
             // Update details content
             orderDetailsContent.innerHTML = `
-                <div class="order-info mb-4">
+                <div class="order-details-section">
                     <div class="d-flex justify-content-between align-items-start mb-3">
-                        <h5>{{ 'orders.orderInfo'|trans }}</h5>
+                        <div>
+                            <h5 class="mb-1">{{ 'orders.orderInfo'|trans }}</h5>
+                            <p class="text-muted mb-0">
+                                <i class="bi bi-calendar3"></i> ${new Date(order.createdAt).toLocaleDateString()}
+                            </p>
+                        </div>
                         <span class="status-badge ${getStatusBadgeClass(order.status)}">
-                            ${order.status}
+                            ${getStatusTranslation(order.status)}
                         </span>
                     </div>
-                    <p>
-                        <strong>{{ 'orders.date'|trans }}:</strong> ${order.createdAt}<br>
-                        <strong>{{ 'orders.total'|trans }}:</strong> ${order.finalPrice} Eur
-                    </p>
-
-                    ${order.shippingAddress ? `
-                        <h6 class="mt-4">{{ 'orders.shippingAddress'|trans }}</h6>
-                        ${formatAddress(order.shippingAddress)}
-                    ` : ''}
-
-                    ${order.invoiceAddress ? `
-                        <h6 class="mt-4">{{ 'orders.invoiceAddress'|trans }}</h6>
-                        ${formatAddress(order.invoiceAddress)}
-                    ` : ''}
                 </div>
-                <div class="order-items">
-                    <h6>{{ 'orders.items'|trans }}</h6>
+
+                ${order.shippingAddress ? `
+                    <div class="order-details-section">
+                        <h6 class="mb-3">
+                            <i class="bi bi-truck me-2"></i>
+                            {{ 'orders.shippingAddress'|trans }}
+                        </h6>
+                        ${formatAddress(order.shippingAddress)}
+                    </div>
+                ` : ''}
+
+                ${order.invoiceAddress ? `
+                    <div class="order-details-section">
+                        <h6 class="mb-3">
+                            <i class="bi bi-file-text me-2"></i>
+                            {{ 'orders.invoiceAddress'|trans }}
+                        </h6>
+                        ${formatAddress(order.invoiceAddress)}
+                    </div>
+                ` : ''}
+
+                <div class="order-items-table">
+                    <h6 class="mb-3">
+                        <i class="bi bi-cart me-2"></i>
+                        {{ 'orders.items'|trans }}
+                    </h6>
                     <div class="table-responsive">
                         <table class="table">
-                            <thead>
+                            <thead class="table-light">
                                 <tr>
                                     <th>{{ 'orders.product'|trans }}</th>
-                                    <th>{{ 'orders.quantity'|trans }}</th>
-                                    <th>{{ 'orders.price'|trans }}</th>
-                                    <th>{{ 'orders.subtotal'|trans }}</th>
+                                    <th class="text-center">{{ 'orders.quantity'|trans }}</th>
+                                    <th class="text-end">{{ 'orders.price'|trans }}</th>
+                                    <th class="text-end">{{ 'orders.subtotal'|trans }}</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 ${itemsHtml}
+                                <tr class="table-total-row">
+                                    <td colspan="3" class="text-end">{{ 'orders.total'|trans }}</td>
+                                    <td class="text-end">${formatPrice(order.finalPrice)}</td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
+
+                ${order.notes ? `
+                    <div class="order-details-section mt-3">
+                        <h6 class="mb-2">
+                            <i class="bi bi-pencil me-2"></i>
+                            {{ 'orders.notes'|trans }}
+                        </h6>
+                        <p class="mb-0">${order.notes}</p>
+                    </div>
+                ` : ''}
             `;
         } catch (error) {
             console.error('Error fetching order details:', error);
             orderDetailsContent.innerHTML = `
                 <div class="alert alert-danger" role="alert">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
                     {{ 'orders.errorLoading'|trans }}
                 </div>
             `;

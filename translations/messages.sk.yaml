@@ -103,3 +103,10 @@ orders:
     subtotal: 'Medzisúčet'
     orderInfo: 'Informácie o objednávke'
     items: 'Položky'
+statuses:
+    pending: 'Čaká sa'
+    paid: 'Zaplatené'
+    processing: 'Spracováva sa'
+    completed: 'Dokončené'
+    shipped: 'Odoslané'
+    cancelled: 'Zrušené'

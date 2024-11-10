@@ -103,3 +103,10 @@ orders:
     subtotal: 'Subtotal'
     orderInfo: 'Order Information'
     items: 'Items'
+statuses:
+    pending: 'Pending'
+    paid: 'Paid'
+    processing: 'Processing'
+    completed: 'Completed'
+    shipped: 'Shipped'
+    cancelled: 'Cancelled'
