@@ -1,82 +1,95 @@
-# Base stage
-FROM dunglas/frankenphp:1-php8.3 AS app
+#syntax=docker/dockerfile:1
+
+# Versions
+FROM dunglas/frankenphp:1-php8.3 AS frankenphp_upstream
+
+# The different stages of this Dockerfile are meant to be built into separate images
+# https://docs.docker.com/develop/develop-images/multistage-build/#stop-at-a-specific-build-stage
+# https://docs.docker.com/compose/compose-file/#target
+
+
+# Base FrankenPHP image
+FROM frankenphp_upstream AS frankenphp_base
 
 WORKDIR /app
 
-# Install additional PHP extensions and Composer
-RUN install-php-extensions \
-    ctype \
-    iconv \
-    intl \
-    pdo_pgsql \
-    && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+VOLUME /app/var/
 
-# Development stage
-FROM app AS app_dev
+# persistent / runtime deps
+# hadolint ignore=DL3008
+RUN apt-get update && apt-get install -y --no-install-recommends \
+	acl \
+	file \
+	gettext \
+	git \
+	&& rm -rf /var/lib/apt/lists/*
 
-# Install Symfony CLI
-RUN curl -1sLf 'https://dl.cloudsmith.io/public/symfony/stable/setup.deb.sh' | bash && \
-    apt-get install -y symfony-cli
+RUN set -eux; \
+	install-php-extensions \
+		@composer \
+		apcu \
+		intl \
+		opcache \
+		zip \
+	;
 
-# Create directory structure and set permissions
-RUN mkdir -p var/cache var/log vendor && \
-    chown -R www-data:www-data /app
+# https://getcomposer.org/doc/03-cli.md#composer-allow-superuser
+ENV COMPOSER_ALLOW_SUPERUSER=1
 
-# Copy composer files first
-COPY --chown=www-data:www-data composer.* symfony.* ./
+ENV PHP_INI_SCAN_DIR=":$PHP_INI_DIR/app.conf.d"
 
-# Install dependencies as www-data
-USER www-data
-RUN composer install --no-interaction --no-plugins --no-scripts --prefer-dist
+###> recipes ###
+###< recipes ###
 
-# Copy rest of the application
-COPY --chown=www-data:www-data . .
+COPY --link frankenphp/conf.d/10-app.ini $PHP_INI_DIR/app.conf.d/
+COPY --link --chmod=755 frankenphp/docker-entrypoint.sh /usr/local/bin/docker-entrypoint
+COPY --link frankenphp/Caddyfile /etc/caddy/Caddyfile
 
-# Run Symfony specific commands
-RUN composer run-script post-install-cmd
+ENTRYPOINT ["docker-entrypoint"]
 
-USER root
-RUN chmod +x bin/console && \
-    chmod -R 777 var
+HEALTHCHECK --start-period=60s CMD curl -f http://localhost:2019/metrics || exit 1
+CMD [ "frankenphp", "run", "--config", "/etc/caddy/Caddyfile" ]
 
-USER www-data
-RUN bin/console doctrine:migrations:migrate --no-interaction
+# Dev FrankenPHP image
+FROM frankenphp_base AS frankenphp_dev
 
-EXPOSE 8000
+ENV APP_ENV=dev XDEBUG_MODE=off
 
-CMD ["symfony", "serve", "--no-tls", "--allow-http", "--port=8000"]
+RUN mv "$PHP_INI_DIR/php.ini-development" "$PHP_INI_DIR/php.ini"
 
-# Production stage
-FROM app AS app_prod
+RUN set -eux; \
+	install-php-extensions \
+		xdebug \
+	;
 
-# Create directory structure and set permissions
-RUN mkdir -p var/cache var/log vendor && \
-    chown -R www-data:www-data /app
+COPY --link frankenphp/conf.d/20-app.dev.ini $PHP_INI_DIR/app.conf.d/
 
-# Copy composer files first
-COPY --chown=www-data:www-data composer.* symfony.* ./
+CMD [ "frankenphp", "run", "--config", "/etc/caddy/Caddyfile", "--watch" ]
 
-# Switch to www-data user for Composer operations
-USER www-data
+# Prod FrankenPHP image
+FROM frankenphp_base AS frankenphp_prod
 
-RUN composer install --no-interaction --no-plugins --no-scripts --prefer-dist
 
-# Copy rest of the application
-COPY --chown=www-data:www-data . .
+ENV APP_ENV=prod
+ENV FRANKENPHP_CONFIG="import worker.Caddyfile"
 
-RUN composer install --no-dev --optimize-autoloader && \
-    composer dump-env prod && \
-    composer run-script post-install-cmd && \
-    composer dump-autoload --classmap-authoritative --no-dev
+RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
 
-USER root
-RUN chmod +x bin/console
+COPY --link frankenphp/conf.d/20-app.prod.ini $PHP_INI_DIR/app.conf.d/
+COPY --link frankenphp/worker.Caddyfile /etc/caddy/worker.Caddyfile
 
-USER www-data
-RUN bin/console cache:clear --no-warmup && \
-    bin/console cache:warmup && \
-    bin/console doctrine:migrations:migrate --no-interaction
+# prevent the reinstallation of vendors at every changes in the source code
+COPY --link composer.* symfony.* ./
+RUN set -eux; \
+	composer install --no-cache --prefer-dist --no-dev --no-autoloader --no-scripts --no-progress
 
-EXPOSE 80
+# copy sources
+COPY --link . ./
+RUN rm -Rf frankenphp/
 
-CMD ["frankenphp", "run", "--config", "/etc/caddy/Caddyfile"]
+RUN set -eux; \
+	mkdir -p var/cache var/log; \
+	composer dump-autoload --classmap-authoritative --no-dev; \
+	composer dump-env prod; \
+	composer run-script --no-dev post-install-cmd; \
+	chmod +x bin/console; sync;
