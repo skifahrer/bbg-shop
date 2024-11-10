@@ -103,6 +103,10 @@ orders:
     subtotal: 'Medzisúčet'
     orderInfo: 'Informácie o objednávke'
     items: 'Položky'
+    notes: 'Poznámky'
+    errorLoading: 'Chyba pri načítaní objednávok'
+    shippingAddress: 'Dodacia adresa'
+    invoiceAddress: 'Fakturačná adresa'
 statuses:
     pending: 'Čaká sa'
     paid: 'Zaplatené'

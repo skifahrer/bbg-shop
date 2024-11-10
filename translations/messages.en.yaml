@@ -103,6 +103,10 @@ orders:
     subtotal: 'Subtotal'
     orderInfo: 'Order Information'
     items: 'Items'
+    notes: 'Notes'
+    errorLoading: 'Error loading orders'
+    shippingAddress: 'Shipping Address'
+    invoiceAddress: 'Invoice Address'
 statuses:
     pending: 'Pending'
     paid: 'Paid'

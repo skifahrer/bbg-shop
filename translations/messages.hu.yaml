@@ -103,6 +103,10 @@ orders:
     subtotal: 'Részösszeg'
     orderInfo: 'Rendelési információk'
     items: 'Termékek'
+    notes: 'Megjegyzések'
+    errorLoading: 'Hiba a rendelések betöltésekor'
+    shippingAddress: 'Szállítási cím'
+    invoiceAddress: 'Számlázási cím'
 statuses:
     pending: 'Függőben'
     paid: 'Fizetve'

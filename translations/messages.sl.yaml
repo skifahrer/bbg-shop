@@ -103,6 +103,10 @@ orders:
     subtotal: 'Vmesni seštevek'
     orderInfo: 'Informacije o naročilu'
     items: 'Izdelki'
+    notes: 'Opombe'
+    errorLoading: 'Napaka pri nalaganju naročil'
+    shippingAddress: 'Naslov za pošiljanje'
+    invoiceAddress: 'Naslov računa'
 statuses:
     pending: 'V čakanju'
     paid: 'Plačano'

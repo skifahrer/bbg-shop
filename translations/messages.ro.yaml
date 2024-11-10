@@ -103,6 +103,10 @@ orders:
     subtotal: 'Subtotal'
     orderInfo: 'Informații despre comandă'
     items: 'Produse'
+    notes: 'Note'
+    errorLoading: 'Eroare la încărcarea comenzilor'
+    shippingAddress: 'Adresă de livrare'
+    invoiceAddress: 'Adresă de facturare'
 statuses:
     pending: 'În așteptare'
     paid: 'Plătit'

@@ -79,6 +79,7 @@
     }
     .order-item {
         transition: background-color 0.15s ease-in-out;
+        cursor: pointer;
     }
     .order-item:hover {
         background-color: #f8f9fa;
@@ -96,6 +97,15 @@
     .table-total-row {
         background-color: #f8f9fa;
         font-weight: 600;
+    }
+    /* New styles for clickable items */
+    .order-item .btn {
+        position: relative;
+        z-index: 2;
+    }
+    .order-item .status-badge {
+        position: relative;
+        z-index: 2;
     }
 </style>
 
@@ -152,7 +162,7 @@
         document.getElementById('orderDetailsColumn').className = 'col-6 d-none border-start';
 
         const ordersHtml = userOrders.map(order => `
-            <div class="list-group-item order-item">
+            <div class="list-group-item order-item" onclick="showOrderDetails('${order.id}')">
                 <div class="d-flex justify-content-between align-items-start mb-3">
                     <div>
                         <h5 class="mb-1">{{ 'orders.order'|trans }} #${order.id}</h5>
@@ -169,10 +179,6 @@
                         <i class="bi bi-tag-fill me-1"></i>
                         ${formatPrice(order.finalPrice)}
                     </span>
-                    <button class="btn btn-outline-primary btn-sm" onclick="showOrderDetails('${order.id}')">
-                        {{ 'orders.details'|trans }}
-                        <i class="bi bi-arrow-right ms-1"></i>
-                    </button>
                 </div>
             </div>
         `).join('');

@@ -103,6 +103,10 @@ orders:
     subtotal: 'Međuzbroj'
     orderInfo: 'Informacije o narudžbi'
     items: 'Artikli'
+    notes: 'Bilješke'
+    errorLoading: 'Greška pri učitavanju narudžbi'
+    shippingAddress: 'Adresa za dostavu'
+    invoiceAddress: 'Adresa za fakturu'
 statuses:
     pending: 'Na čekanju'
     paid: 'Plaćeno'

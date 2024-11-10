@@ -103,6 +103,10 @@ orders:
     subtotal: 'Междинна сума'
     orderInfo: 'Информация за поръчката'
     items: 'Артикули'
+    notes: 'Бележки'
+    errorLoading: 'Грешка при зареждане на поръчките'
+    shippingAddress: 'Адрес за доставка'
+    invoiceAddress: 'Адрес за фактура'
 statuses:
     pending: 'В очакване'
     paid: 'Платено'
