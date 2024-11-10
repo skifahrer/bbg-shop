@@ -73,14 +73,18 @@ class OrderController extends AbstractController
 
     public function getOrders(#[CurrentUser] User $user, Request $request): JsonResponse
     {
-        $orders = $this->orderRepository->findBy(['user' => $user], ['createdAt' => 'DESC']);
+        $orders = $this->orderRepository->findBy(
+            ['user' => $user],
+            ['createdAt' => 'DESC']
+        );
 
         return $this->json([
                                'orders' => array_map(function($order) {
                                    return [
                                        'id' => $order->getId(),
                                        'status' => $order->getStatus(),
-                                       'createdAt' => $order->getCreatedAt()->format('Y-m-d H:i:s'),
+                                       // Changed format to include microseconds for more precise sorting
+                                       'createdAt' => $order->getCreatedAt()->format('Y-m-d H:i:s.u'),
                                        'finalPrice' => $order->getFinalPrice(),
                                        'items' => array_map(function($item) {
                                            return [

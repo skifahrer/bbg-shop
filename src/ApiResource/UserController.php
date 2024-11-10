@@ -71,6 +71,12 @@ class UserController extends AbstractController
     {
         $locale = $request->query->get('locale', 'en');
 
+        // Get orders and sort them by creation date in descending order
+        $orders = $user->getOrders()->toArray();
+        usort($orders, function($a, $b) {
+            return $b->getCreatedAt() <=> $a->getCreatedAt();
+        });
+
         return $this->json([
                                'user' => [
                                    'id' => $user->getId(),
@@ -102,7 +108,7 @@ class UserController extends AbstractController
                                            'createdAt' => $order->getCreatedAt()->format('Y-m-d H:i:s'),
                                            'finalPrice' => $order->getFinalPrice()
                                        ];
-                                   }, $user->getOrders()->toArray()),
+                                   }, $orders),
                                    'checkouts' => array_map(function($checkout) {
                                        return [
                                            'id' => $checkout->getId(),
