@@ -4,9 +4,9 @@ namespace App\Repository;
 
 use App\Entity\Product;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\ORM\Tools\Pagination\Paginator;
+use Doctrine\Persistence\ManagerRegistry;
 
 class ProductRepository extends ServiceEntityRepository
 {
@@ -21,19 +21,19 @@ class ProductRepository extends ServiceEntityRepository
 
         if ($search) {
             // Map locale to entity field name
-            $titleField = match($locale) {
+            $titleField = match ($locale) {
                 'sk' => 'title_sk',
                 'sl' => 'title_sl',
                 'hu' => 'title_hu',
                 'hr' => 'title_hr',
                 'ro' => 'title_ro',
                 'bg' => 'title_bg',
-                default => 'title_en'
+                default => 'title_en',
             };
 
             $qb->where("LOWER(p.{$titleField}) LIKE LOWER(:search)")
                 ->orWhere('LOWER(p.item) LIKE LOWER(:search)')
-                ->setParameter('search', '%' . strtolower($search) . '%');
+                ->setParameter('search', '%'.strtolower($search).'%');
         }
 
         return $qb;
@@ -46,6 +46,7 @@ class ProductRepository extends ServiceEntityRepository
             ->setMaxResults($limit);
 
         $paginator = new Paginator($qb->getQuery());
+
         return $paginator->getIterator()->getArrayCopy();
     }
 
@@ -85,7 +86,7 @@ class ProductRepository extends ServiceEntityRepository
             'title_hr' => $product->getTitleHr(),
             'title_ro' => $product->getTitleRo(),
             'title_bg' => $product->getTitleBg(),
-            'features_json' => $product->getFeaturesJson()
+            'features_json' => $product->getFeaturesJson(),
         ];
     }
 }

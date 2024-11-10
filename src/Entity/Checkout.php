@@ -4,7 +4,6 @@ namespace App\Entity;
 
 use App\Enum\PaymentType;
 use Doctrine\ORM\Mapping as ORM;
-use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\UuidInterface;
 
 #[ORM\Entity(repositoryClass: "App\Repository\CheckoutRepository")]
@@ -53,6 +52,7 @@ class Checkout
     public function setUser(User $user): self
     {
         $this->user = $user;
+
         return $this;
     }
 
@@ -64,6 +64,7 @@ class Checkout
     public function setCart(Cart $cart): self
     {
         $this->cart = $cart;
+
         return $this;
     }
 
@@ -75,6 +76,7 @@ class Checkout
     public function setOrder(Order $order): self
     {
         $this->order = $order;
+
         return $this;
     }
 
@@ -86,6 +88,7 @@ class Checkout
     public function setCreatedAt(\DateTime $createdAt): self
     {
         $this->createdAt = $createdAt;
+
         return $this;
     }
 
@@ -97,6 +100,7 @@ class Checkout
     public function setShippingAddress(string $shippingAddress): self
     {
         $this->shippingAddress = $shippingAddress;
+
         return $this;
     }
 
@@ -108,6 +112,7 @@ class Checkout
     public function setInvoiceAddress(string $invoiceAddress): self
     {
         $this->invoiceAddress = $invoiceAddress;
+
         return $this;
     }
 
@@ -119,6 +124,7 @@ class Checkout
     public function setPaymentType(PaymentType $paymentType): self
     {
         $this->paymentType = $paymentType;
+
         return $this;
     }
 }

@@ -1,4 +1,5 @@
 <?php
+
 namespace App\EventListener;
 
 use Symfony\Component\HttpKernel\Event\RequestEvent;
@@ -25,6 +26,7 @@ class LocaleListener
         if ($locale = $request->getSession()->get('_locale')) {
             if (in_array($locale, $this->supportedLocales)) {
                 $request->setLocale($locale);
+
                 return;
             }
         }
@@ -34,6 +36,7 @@ class LocaleListener
         if ($browserLocale) {
             $request->setLocale($browserLocale);
             $request->getSession()->set('_locale', $browserLocale);
+
             return;
         }
 

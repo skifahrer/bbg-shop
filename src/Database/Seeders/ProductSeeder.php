@@ -1,10 +1,10 @@
 <?php
+
 namespace App\Database\Seeders;
 
 use App\Entity\Product;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
-use Ramsey\Uuid\Uuid;
 
 class ProductSeeder extends Fixture
 {
@@ -64,6 +64,7 @@ class ProductSeeder extends Fixture
             }
             fclose($handle);
         }
+
         return $data;
     }
 }

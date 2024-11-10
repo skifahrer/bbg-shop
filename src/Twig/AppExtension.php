@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Twig;
 
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;

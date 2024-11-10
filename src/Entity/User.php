@@ -3,11 +3,11 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use Lexik\Bundle\JWTAuthenticationBundle\Security\User\JWTUserInterface;
 use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\UuidInterface;
-use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
-use Lexik\Bundle\JWTAuthenticationBundle\Security\User\JWTUserInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Index(name: 'idx_user_email', columns: ['email'])]
@@ -104,42 +104,49 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, JWTUser
     public function setName(string $name): self
     {
         $this->name = $name;
+
         return $this;
     }
 
     public function setFamily(string $family): self
     {
         $this->family = $family;
+
         return $this;
     }
 
     public function setEmail(string $email): self
     {
         $this->email = $email;
+
         return $this;
     }
 
     public function setRoles(array $roles): self
     {
         $this->roles = $roles;
+
         return $this;
     }
 
     public function setCarts($carts): self
     {
         $this->carts = $carts;
+
         return $this;
     }
 
     public function setOrders($orders): self
     {
         $this->orders = $orders;
+
         return $this;
     }
 
     public function setCheckouts($checkouts): self
     {
         $this->checkouts = $checkouts;
+
         return $this;
     }
 
@@ -156,6 +163,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, JWTUser
     public function setPassword(string $password): self
     {
         $this->password = $password;
+
         return $this;
     }
 
@@ -181,6 +189,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, JWTUser
     public function setInvoiceAddress(?string $invoiceAddress): self
     {
         $this->invoiceAddress = $invoiceAddress;
+
         return $this;
     }
 
@@ -194,6 +203,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, JWTUser
         $user = new self();
         $user->id = Uuid::fromString($id);
         $user->setRoles($payload['roles'] ?? ['ROLE_USER']);
+
         return $user;
     }
 }

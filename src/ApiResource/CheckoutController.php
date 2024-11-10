@@ -4,12 +4,11 @@ namespace App\ApiResource;
 
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\Post;
-use ApiPlatform\Metadata\Put;
 use App\Entity\Checkout;
 use App\Entity\Order;
 use App\Entity\User;
-use App\Enum\PaymentType;
 use App\Enum\OrderStatus;
+use App\Enum\PaymentType;
 use App\Repository\CartRepository;
 use App\Repository\CheckoutRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -48,8 +47,9 @@ class CheckoutController extends AbstractController
     public function __construct(
         private EntityManagerInterface $entityManager,
         private CartRepository $cartRepository,
-        private CheckoutRepository $checkoutRepository
-    ) {}
+        private CheckoutRepository $checkoutRepository,
+    ) {
+    }
 
     public function getCurrentCheckout(#[CurrentUser] User $user, Request $request): JsonResponse
     {
@@ -60,9 +60,9 @@ class CheckoutController extends AbstractController
 
         if (!$activeCart) {
             return $this->json([
-                                   'message' => 'No active cart found',
-                                   'checkout' => null
-                               ]);
+                'message' => 'No active cart found',
+                'checkout' => null,
+            ]);
         }
 
         // Get checkout associated with the active cart
@@ -70,9 +70,9 @@ class CheckoutController extends AbstractController
 
         if (!$checkout) {
             return $this->json([
-                                   'message' => 'No checkout process started',
-                                   'checkout' => null
-                               ]);
+                'message' => 'No checkout process started',
+                'checkout' => null,
+            ]);
         }
 
         $items = [];
@@ -88,7 +88,7 @@ class CheckoutController extends AbstractController
                 'title' => $product->getLocalizedTitle($locale),
                 'price' => $product->getOxprice(),
                 'quantity' => $itemQuantity->getQuantity(),
-                'amount' => $amount
+                'amount' => $amount,
             ];
         }
 
@@ -100,7 +100,7 @@ class CheckoutController extends AbstractController
             'payment_type' => $checkout->getPaymentType()?->value,
             'items' => $items,
             'total_amount' => $totalAmount,
-            'items_count' => count($items)
+            'items_count' => count($items),
         ];
 
         $order = $checkout->getOrder();
@@ -108,7 +108,7 @@ class CheckoutController extends AbstractController
             $response['order'] = [
                 'id' => $order->getId(),
                 'status' => $order->getStatus(),
-                'created_at' => $order->getCreatedAt()->format('Y-m-d H:i:s')
+                'created_at' => $order->getCreatedAt()->format('Y-m-d H:i:s'),
             ];
         }
 
@@ -149,23 +149,21 @@ class CheckoutController extends AbstractController
                 $checkout->setPaymentType(PaymentType::from($data['payment_type']));
             }
 
-
             $this->entityManager->persist($checkout);
             $this->entityManager->flush();
 
             $response = [
                 'checkout_id' => $checkout->getId(),
-                'message' => $isNewCheckout ? 'Checkout created successfully' : 'Checkout details updated successfully'
+                'message' => $isNewCheckout ? 'Checkout created successfully' : 'Checkout details updated successfully',
             ];
 
             return $this->json(
                 $response,
                 $isNewCheckout ? Response::HTTP_CREATED : Response::HTTP_OK
             );
-
         } catch (\Exception $e) {
             return $this->json(
-                ['error' => 'Failed to process checkout: ' . $e->getMessage()],
+                ['error' => 'Failed to process checkout: '.$e->getMessage()],
                 Response::HTTP_INTERNAL_SERVER_ERROR
             );
         }
@@ -202,13 +200,13 @@ class CheckoutController extends AbstractController
             $product = $itemQuantity->getProduct();
             if ($product->getStock() < $itemQuantity->getQuantity()) {
                 return $this->json([
-                                       'error' => sprintf(
-                                           'Insufficient stock for product %s. Available: %d, Requested: %d',
-                                           $product->getId(),
-                                           $product->getStock(),
-                                           $itemQuantity->getQuantity()
-                                       )
-                                   ], Response::HTTP_BAD_REQUEST);
+                    'error' => sprintf(
+                        'Insufficient stock for product %s. Available: %d, Requested: %d',
+                        $product->getId(),
+                        $product->getStock(),
+                        $itemQuantity->getQuantity()
+                    ),
+                ], Response::HTTP_BAD_REQUEST);
             }
         }
 
@@ -242,7 +240,7 @@ class CheckoutController extends AbstractController
             }
 
             // Set the final price for the order
-            $order->setFinalPrice((string)$totalAmount);
+            $order->setFinalPrice((string) $totalAmount);
 
             $this->entityManager->persist($order);
 
@@ -252,14 +250,13 @@ class CheckoutController extends AbstractController
             $this->entityManager->flush();
 
             return $this->json([
-                                   'order_id' => $order->getId(),
-                                   'status' => $order->getStatus(),
-                                   'created_at' => $order->getCreatedAt()->format('Y-m-d H:i:s'),
-                                   'message' => 'Order placed successfully'
-                               ]);
-
+                'order_id' => $order->getId(),
+                'status' => $order->getStatus(),
+                'created_at' => $order->getCreatedAt()->format('Y-m-d H:i:s'),
+                'message' => 'Order placed successfully',
+            ]);
         } catch (\Exception $e) {
-            return $this->json(['error' => 'Failed to place order: ' . $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
+            return $this->json(['error' => 'Failed to place order: '.$e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -295,7 +292,7 @@ class CheckoutController extends AbstractController
                 'title' => $product->getLocalizedTitle($locale), // You might want to make this configurable
                 'price' => $product->getOxprice(),
                 'quantity' => $itemQuantity->getQuantity(),
-                'amount' => $amount
+                'amount' => $amount,
             ];
         }
 
@@ -306,14 +303,14 @@ class CheckoutController extends AbstractController
             'invoice_address' => $checkout->getInvoiceAddress(),
             'payment_type' => $checkout->getPaymentType()?->value,
             'items' => $items,
-            'total_amount' => $totalAmount
+            'total_amount' => $totalAmount,
         ];
 
         if ($order) {
             $response['order'] = [
                 'id' => $order->getId(),
                 'status' => $order->getStatus(),
-                'created_at' => $order->getCreatedAt()->format('Y-m-d H:i:s')
+                'created_at' => $order->getCreatedAt()->format('Y-m-d H:i:s'),
             ];
         }
 

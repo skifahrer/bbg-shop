@@ -2,13 +2,12 @@
 
 namespace App\Tests\Entity;
 
-use App\Entity\User;
 use App\Entity\Cart;
-use App\Entity\Order;
 use App\Entity\Checkout;
+use App\Entity\Order;
+use App\Entity\User;
 use PHPUnit\Framework\TestCase;
 use Ramsey\Uuid\Uuid;
-use ReflectionClass;
 
 class UserTest extends TestCase
 {
@@ -19,7 +18,7 @@ class UserTest extends TestCase
         $this->user = new User();
 
         // Initialize the ID using reflection since it's a private property
-        $reflection = new ReflectionClass(User::class);
+        $reflection = new \ReflectionClass(User::class);
         $property = $reflection->getProperty('id');
         $property->setAccessible(true);
         $property->setValue($this->user, Uuid::uuid4());
@@ -99,7 +98,7 @@ class UserTest extends TestCase
     {
         $uuid = Uuid::uuid4();
         $payload = [
-            'roles' => ['ROLE_USER', 'ROLE_ADMIN']
+            'roles' => ['ROLE_USER', 'ROLE_ADMIN'],
         ];
 
         $user = User::createFromPayload($uuid->toString(), $payload);

@@ -17,19 +17,20 @@ class JWTAuthenticator extends AbstractAuthenticator
 {
     public function __construct(
         private JWTTokenManagerInterface $jwtManager,
-        private TokenExtractorInterface $tokenExtractor
-    ) {}
+        private TokenExtractorInterface $tokenExtractor,
+    ) {
+    }
 
     public function supports(Request $request): ?bool
     {
-        return $this->tokenExtractor->extract($request) !== false;
+        return false !== $this->tokenExtractor->extract($request);
     }
 
     public function authenticate(Request $request): Passport
     {
         $token = $this->tokenExtractor->extract($request);
 
-        if ($token === false) {
+        if (false === $token) {
             throw new AuthenticationException('No JWT token found');
         }
 

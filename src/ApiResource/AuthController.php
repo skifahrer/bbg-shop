@@ -2,19 +2,18 @@
 
 namespace App\ApiResource;
 
-use App\Repository\UserRepository;
+use ApiPlatform\Metadata\Post;
 use App\Entity\User;
-use Ramsey\Uuid\Uuid;
-use Ramsey\Uuid\UuidInterface;
+use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
+use Ramsey\Uuid\Uuid;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
-use ApiPlatform\Metadata\Post;
 
 #[Post(
     uriTemplate: '/auth/login',
@@ -33,7 +32,7 @@ class AuthController extends AbstractController
 
     public function __construct(
         Security $security,
-        EntityManagerInterface $entityManager
+        EntityManagerInterface $entityManager,
     ) {
         $this->security = $security;
         $this->entityManager = $entityManager;
@@ -43,7 +42,7 @@ class AuthController extends AbstractController
         Request $request,
         UserRepository $userRepository,
         UserPasswordHasherInterface $passwordHasher,
-        JWTTokenManagerInterface $jwtManager
+        JWTTokenManagerInterface $jwtManager,
     ): JsonResponse {
         $data = json_decode($request->getContent(), true);
 

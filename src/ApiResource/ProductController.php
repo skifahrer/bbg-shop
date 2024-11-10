@@ -8,9 +8,6 @@ use App\Repository\ProductRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Get(
     uriTemplate: '/products',
@@ -25,8 +22,9 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class ProductController extends AbstractController
 {
     public function __construct(
-        private ProductRepository $productRepository
-    ) {}
+        private ProductRepository $productRepository,
+    ) {
+    }
 
     public function list(Request $request, ProductRepository $productRepository): JsonResponse
     {
@@ -39,11 +37,11 @@ class ProductController extends AbstractController
         $totalProducts = $productRepository->countBySearch($search, $locale);
 
         return $this->json([
-                               'products' => $products,
-                               'totalProducts' => $totalProducts,
-                               'currentPage' => $page,
-                               'totalPages' => ceil($totalProducts / $limit),
-                           ]);
+            'products' => $products,
+            'totalProducts' => $totalProducts,
+            'currentPage' => $page,
+            'totalPages' => ceil($totalProducts / $limit),
+        ]);
     }
 
     public function get(Product $product, ProductRepository $productRepository): JsonResponse

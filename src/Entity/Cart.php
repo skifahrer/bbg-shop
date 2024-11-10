@@ -5,7 +5,6 @@ namespace App\Entity;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\UuidInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
 
@@ -49,6 +48,7 @@ class Cart
     public function setUser(User $user): self
     {
         $this->user = $user;
+
         return $this;
     }
 
@@ -90,6 +90,7 @@ class Cart
     public function setCheckout(?Checkout $checkout): self
     {
         $this->checkout = $checkout;
+
         return $this;
     }
 }

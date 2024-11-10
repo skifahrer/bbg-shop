@@ -3,17 +3,16 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
-use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\UuidInterface;
 
 #[ORM\Entity(repositoryClass: "App\Repository\ProductRepository")]
-#[ORM\Index(columns: ["title_en"], name: "idx_product_title_en")]
-#[ORM\Index(columns: ["title_sk"], name: "idx_product_title_sk")]
-#[ORM\Index(columns: ["title_sl"], name: "idx_product_title_sl")]
-#[ORM\Index(columns: ["title_hu"], name: "idx_product_title_hu")]
-#[ORM\Index(columns: ["title_hr"], name: "idx_product_title_hr")]
-#[ORM\Index(columns: ["title_ro"], name: "idx_product_title_ro")]
-#[ORM\Index(columns: ["title_bg"], name: "idx_product_title_bg")]
+#[ORM\Index(columns: ['title_en'], name: 'idx_product_title_en')]
+#[ORM\Index(columns: ['title_sk'], name: 'idx_product_title_sk')]
+#[ORM\Index(columns: ['title_sl'], name: 'idx_product_title_sl')]
+#[ORM\Index(columns: ['title_hu'], name: 'idx_product_title_hu')]
+#[ORM\Index(columns: ['title_hr'], name: 'idx_product_title_hr')]
+#[ORM\Index(columns: ['title_ro'], name: 'idx_product_title_ro')]
+#[ORM\Index(columns: ['title_bg'], name: 'idx_product_title_bg')]
 class Product
 {
     #[ORM\Id]
@@ -70,6 +69,7 @@ class Product
     public function setId(UuidInterface $id): self
     {
         $this->id = $id;
+
         return $this;
     }
 
@@ -81,6 +81,7 @@ class Product
     public function setItem(string $item): self
     {
         $this->item = $item;
+
         return $this;
     }
 
@@ -92,6 +93,7 @@ class Product
     public function setOxprice(float $oxprice): self
     {
         $this->oxprice = $oxprice;
+
         return $this;
     }
 
@@ -103,6 +105,7 @@ class Product
     public function setWeight(float $weight): self
     {
         $this->weight = $weight;
+
         return $this;
     }
 
@@ -114,6 +117,7 @@ class Product
     public function setStock(int $stock): self
     {
         $this->stock = $stock;
+
         return $this;
     }
 
@@ -125,6 +129,7 @@ class Product
     public function setLength(int $length): self
     {
         $this->length = $length;
+
         return $this;
     }
 
@@ -136,6 +141,7 @@ class Product
     public function setWidth(int $width): self
     {
         $this->width = $width;
+
         return $this;
     }
 
@@ -147,6 +153,7 @@ class Product
     public function setHeight(int $height): self
     {
         $this->height = $height;
+
         return $this;
     }
 
@@ -158,6 +165,7 @@ class Product
     public function setTitleEn(string $title_en): self
     {
         $this->title_en = $title_en;
+
         return $this;
     }
 
@@ -169,6 +177,7 @@ class Product
     public function setTitleSk(string $title_sk): self
     {
         $this->title_sk = $title_sk;
+
         return $this;
     }
 
@@ -180,6 +189,7 @@ class Product
     public function setTitleSl(string $title_sl): self
     {
         $this->title_sl = $title_sl;
+
         return $this;
     }
 
@@ -191,6 +201,7 @@ class Product
     public function setTitleHu(string $title_hu): self
     {
         $this->title_hu = $title_hu;
+
         return $this;
     }
 
@@ -202,6 +213,7 @@ class Product
     public function setTitleHr(string $title_hr): self
     {
         $this->title_hr = $title_hr;
+
         return $this;
     }
 
@@ -213,6 +225,7 @@ class Product
     public function setTitleRo(string $title_ro): self
     {
         $this->title_ro = $title_ro;
+
         return $this;
     }
 
@@ -224,6 +237,7 @@ class Product
     public function setTitleBg(string $title_bg): self
     {
         $this->title_bg = $title_bg;
+
         return $this;
     }
 
@@ -235,6 +249,7 @@ class Product
     public function setFeaturesJson(array $features_json): self
     {
         $this->features_json = $features_json;
+
         return $this;
     }
 

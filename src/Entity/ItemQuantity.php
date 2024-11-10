@@ -3,7 +3,6 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
-use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\UuidInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
 
@@ -47,6 +46,7 @@ class ItemQuantity
     public function setCart(?Cart $cart): self
     {
         $this->cart = $cart;
+
         return $this;
     }
 
@@ -58,6 +58,7 @@ class ItemQuantity
     public function setOrder(?Order $order): self
     {
         $this->order = $order;
+
         return $this;
     }
 
@@ -69,6 +70,7 @@ class ItemQuantity
     public function setProduct(Product $product): self
     {
         $this->product = $product;
+
         return $this;
     }
 
@@ -80,6 +82,7 @@ class ItemQuantity
     public function setQuantity(int $quantity): self
     {
         $this->quantity = $quantity;
+
         return $this;
     }
 }

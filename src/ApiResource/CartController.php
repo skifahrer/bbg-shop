@@ -7,6 +7,7 @@ use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 use App\Entity\Cart;
 use App\Entity\ItemQuantity;
+use App\Entity\User;
 use App\Repository\CartRepository;
 use App\Repository\ProductRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -14,11 +15,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
-use Symfony\Component\Security\Http\Attribute\IsGranted;
-use App\Entity\User;
-
 
 #[Get(
     uriTemplate: '/cart',
@@ -38,16 +35,16 @@ use App\Entity\User;
     security: "is_granted('ROLE_USER')",
     name: 'api_update_cart'
 )]
-
 class CartController extends AbstractController
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
         private CartRepository $cartRepository,
-        private ProductRepository $productRepository
-    ) {}
+        private ProductRepository $productRepository,
+    ) {
+    }
 
-    public function getCart(#[CurrentUser] User $user,  Request $request): JsonResponse
+    public function getCart(#[CurrentUser] User $user, Request $request): JsonResponse
     {
         $locale = $request->query->get('locale', 'en');
 
@@ -73,16 +70,16 @@ class CartController extends AbstractController
                 'title' => $product->getLocalizedTitle($locale),
                 'price' => $product->getOxprice(),
                 'quantity' => $itemQuantity->getQuantity(),
-                'amount' => $amount
+                'amount' => $amount,
             ];
         }
 
         return $this->json([
-                               'cart_id' => $activeCart->getId(),
-                               'items' => $items,
-                               'total_amount' => $totalAmount,
-                               'items_count' => count($items)
-                           ]);
+            'cart_id' => $activeCart->getId(),
+            'items' => $items,
+            'total_amount' => $totalAmount,
+            'items_count' => count($items),
+        ]);
     }
 
     public function addToCart(#[CurrentUser] User $user, Request $request): JsonResponse
@@ -132,9 +129,9 @@ class CartController extends AbstractController
         $this->entityManager->flush();
 
         return $this->json([
-                               'message' => 'Product added to cart successfully',
-                               'cart_id' => $activeCart->getId()
-                           ]);
+            'message' => 'Product added to cart successfully',
+            'cart_id' => $activeCart->getId(),
+        ]);
     }
 
     public function updateCart(#[CurrentUser] User $user, Request $request): JsonResponse

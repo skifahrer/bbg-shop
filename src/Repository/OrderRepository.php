@@ -4,8 +4,8 @@ namespace App\Repository;
 
 use App\Entity\Order;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\Persistence\ManagerRegistry;
 
 #[ORM\Entity(repositoryClass: OrderRepository::class)]
 class OrderRepository extends ServiceEntityRepository

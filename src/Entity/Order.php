@@ -6,7 +6,6 @@ use App\Enum\OrderStatus;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\UuidInterface;
 
 #[ORM\Entity(repositoryClass: "App\Repository\OrderRepository")]
@@ -62,6 +61,7 @@ class Order
     public function setUser(User $user): self
     {
         $this->user = $user;
+
         return $this;
     }
 
@@ -73,6 +73,7 @@ class Order
     public function setCreatedAt(\DateTime $createdAt): self
     {
         $this->createdAt = $createdAt;
+
         return $this;
     }
 
@@ -87,6 +88,7 @@ class Order
             $this->itemQuantities[] = $itemQuantity;
             $itemQuantity->setOrder($this);
         }
+
         return $this;
     }
 
@@ -98,6 +100,7 @@ class Order
                 $itemQuantity->setOrder(null);
             }
         }
+
         return $this;
     }
 
@@ -109,6 +112,7 @@ class Order
     public function setFinalPrice(string $finalPrice): self
     {
         $this->finalPrice = $finalPrice;
+
         return $this;
     }
 
@@ -120,6 +124,7 @@ class Order
     public function setShippingAddress(string $shippingAddress): self
     {
         $this->shippingAddress = $shippingAddress;
+
         return $this;
     }
 
@@ -131,6 +136,7 @@ class Order
     public function setInvoiceAddress(string $invoiceAddress): self
     {
         $this->invoiceAddress = $invoiceAddress;
+
         return $this;
     }
 
@@ -142,6 +148,7 @@ class Order
     public function setStatus(OrderStatus $status): self
     {
         $this->status = $status;
+
         return $this;
     }
 
@@ -153,6 +160,7 @@ class Order
     public function setCheckout(?Checkout $checkout): self
     {
         $this->checkout = $checkout;
+
         return $this;
     }
 }
