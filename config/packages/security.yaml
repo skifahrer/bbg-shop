@@ -41,4 +41,5 @@ security:
         - { path: ^/api/cart/add, roles: ROLE_USER }
         - { path: ^/api/cart/update, roles: ROLE_USER }
         - { path: ^/api/checkout, roles: ROLE_USER }
+        - { path: ^/api/orders, roles: ROLE_USER }
         - { path: ^/api, roles: PUBLIC_ACCESS }
