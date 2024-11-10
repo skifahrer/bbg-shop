@@ -51,13 +51,14 @@
                 <div class="modal-body">
                     <div class="row">
                         <div class="col-md-6">
-                            <img id="modalProductImage" src="" alt="" class="img-fluid">
+                            <img id="modalProductImage" src="" alt="" class="img-fluid mb-3">
+                            <div id="modalProductDimensions" class="small text-muted"></div>
                         </div>
                         <div class="col-md-6">
-                            <h2 id="modalProductTitle"></h2>
-                            <p id="modalProductDescription" class="mt-3"></p>
+                            <h2 id="modalProductTitle" class="h4"></h2>
+                            <div id="modalProductDescription" class="mt-3"></div>
                             <p id="modalProductStock" class="mt-3"></p>
-                            <p id="modalProductPrice" class="mt-3 fw-bold"></p>
+                            <p id="modalProductPrice" class="mt-3 fw-bold h4"></p>
                             <button id="modalAddToCart" class="btn btn-success w-100 mt-3">
                                 {{ 'cart.add_to_cart'|trans }}
                             </button>
@@ -118,25 +119,61 @@
             fetch(`/api/products/${productId}?locale=${locale}`)
                 .then(response => response.json())
                 .then(product => {
-                    const titleKey = `title${locale.charAt(0).toUpperCase() + locale.slice(1)}`;
-                    const descriptionKey = `description${locale.charAt(0).toUpperCase() + locale.slice(1)}`;
+                    const titleKey = `title_${locale}`; // Using direct locale key matching
 
-                    document.getElementById('modalProductTitle').textContent = product[titleKey] || 'Title not available';
-                    document.getElementById('modalProductDescription').textContent = product[descriptionKey] || 'Description not available';
-                    document.getElementById('modalProductImage').src = product.image || '{{ asset("images/product.jpeg") }}';
-                    document.getElementById('modalProductImage').alt = product[titleKey] || 'Product image';
-                    document.getElementById('modalProductPrice').textContent = `${product.oxprice} €`;
+                    // Update modal elements
+                    document.getElementById('modalProductTitle').textContent =
+                        product[titleKey] || product.title_en || 'Title not available';
 
+                    document.getElementById('modalProductImage').src =
+                        product.image || '{{ asset("images/product.jpeg") }}';
+                    document.getElementById('modalProductImage').alt =
+                        product[titleKey] || product.title_en || 'Product image';
+
+                    document.getElementById('modalProductPrice').textContent =
+                        `${product.oxprice} €`;
+
+                    // Display dimensions if available
+                    const dimensionsElement = document.getElementById('modalProductDimensions');
+                    if (product.length || product.width || product.height) {
+                        dimensionsElement.textContent =
+                            `{{ 'product.dimensions'|trans }}: ${product.length || 0} × ${product.width || 0} × ${product.height || 0} cm`;
+                    } else {
+                        dimensionsElement.textContent = '';
+                    }
+
+                    // Handle features/description
+                    const descriptionElement = document.getElementById('modalProductDescription');
+                    if (product.features_json && product.features_json.features && product.features_json.features.length > 0) {
+                        const featuresList = document.createElement('ul');
+                        featuresList.className = 'list-unstyled';
+
+                        product.features_json.features.forEach(feature => {
+                            if (feature.desc) {
+                                const li = document.createElement('li');
+                                li.className = 'mb-2';
+                                li.innerHTML = feature.desc; // Using innerHTML to preserve HTML formatting
+                                featuresList.appendChild(li);
+                            }
+                        });
+
+                        descriptionElement.innerHTML = ''; // Clear existing content
+                        descriptionElement.appendChild(featuresList);
+                    } else {
+                        descriptionElement.textContent = '{{ 'product.no_description'|trans }}';
+                    }
+
+                    // Update stock status
                     const stockElement = document.getElementById('modalProductStock');
                     const addToCartButton = document.getElementById('modalAddToCart');
 
                     if (product.stock <= 0) {
                         stockElement.textContent = '{{ 'product.out_of_stock'|trans }}';
-                        stockElement.classList.add('text-danger');
+                        stockElement.className = 'mt-3 text-danger';
                         addToCartButton.disabled = true;
                     } else {
                         stockElement.textContent = `{{ 'product.stock'|trans }}: ${product.stock}`;
-                        stockElement.classList.remove('text-danger');
+                        stockElement.className = 'mt-3 text-success';
                         addToCartButton.disabled = false;
                     }
 
@@ -167,8 +204,8 @@
                 const productCard = document.createElement('div');
                 productCard.classList.add('col-md-6', 'col-lg-3', 'mb-4');
 
-                const titleKey = `title${currentLocale.charAt(0).toUpperCase() + currentLocale.slice(1)}`;
-                let productTitle = product[titleKey] || 'Title not available';
+                const titleKey = `title_${currentLocale}`; // Updated to match API response format
+                let productTitle = product[titleKey] || product.title_en || 'Title not available';
 
                 productCard.innerHTML = `
                     <div class="product-card cursor-pointer" data-product-id="${product.id}">
@@ -176,7 +213,7 @@
                              alt="${productTitle}"
                              class="product-image">
                         <h5 class="product-title" title="${productTitle}">${productTitle}</h5>
-                        <p class="product-stock ${product.stock <= 0 ? 'out-of-stock' : ''}">
+                        <p class="product-stock ${product.stock <= 0 ? 'out-of-stock text-danger' : 'text-success'}">
                             ${product.stock <= 0 ? '{{ 'product.out_of_stock'|trans }}' : '{{ 'product.stock'|trans }}: ' + product.stock}
                         </p>
                         <p class="product-price">${product.oxprice} €</p>
