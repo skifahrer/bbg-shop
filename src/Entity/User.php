@@ -53,6 +53,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, JWTUser
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private $shippingAddress;
 
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    private $invoiceAddress;
+
     public function getId(): UuidInterface
     {
         return $this->id;
@@ -168,6 +171,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface, JWTUser
     public function setShippingAddress(mixed $shipping_address)
     {
         $this->shippingAddress = $shipping_address;
+    }
+
+    public function getInvoiceAddress(): ?string
+    {
+        return $this->invoiceAddress;
+    }
+
+    public function setInvoiceAddress(?string $invoiceAddress): self
+    {
+        $this->invoiceAddress = $invoiceAddress;
+        return $this;
     }
 
     public function getUserIdentifier(): string

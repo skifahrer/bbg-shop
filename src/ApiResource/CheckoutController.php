@@ -213,6 +213,10 @@ class CheckoutController extends AbstractController
         }
 
         try {
+            // Update user addresses
+            $user->setShippingAddress($checkout->getShippingAddress());
+            $user->setInvoiceAddress($checkout->getInvoiceAddress());
+
             // Create new order
             $order = new Order();
             $order->setUser($user);

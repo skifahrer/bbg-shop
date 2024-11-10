@@ -7,6 +7,13 @@ use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\UuidInterface;
 
 #[ORM\Entity(repositoryClass: "App\Repository\ProductRepository")]
+#[ORM\Index(columns: ["title_en"], name: "idx_product_title_en")]
+#[ORM\Index(columns: ["title_sk"], name: "idx_product_title_sk")]
+#[ORM\Index(columns: ["title_sl"], name: "idx_product_title_sl")]
+#[ORM\Index(columns: ["title_hu"], name: "idx_product_title_hu")]
+#[ORM\Index(columns: ["title_hr"], name: "idx_product_title_hr")]
+#[ORM\Index(columns: ["title_ro"], name: "idx_product_title_ro")]
+#[ORM\Index(columns: ["title_bg"], name: "idx_product_title_bg")]
 class Product
 {
     #[ORM\Id]
