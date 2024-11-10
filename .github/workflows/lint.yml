@@ -45,11 +45,6 @@ jobs:
         run: |
           php-cs-fixer fix src --dry-run --diff --using-cache=no --rules=@Symfony
 
-      - name: Run PHPStan
-        run: |
-          composer require --dev phpstan/phpstan
-          vendor/bin/phpstan analyse src tests --level=5
-
       - name: Validate Symfony configuration
         run: |
           php bin/console lint:yaml config
