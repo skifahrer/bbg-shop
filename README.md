@@ -5,9 +5,16 @@ Eshop application for bbg application. It is a simple eshop application with use
 
 ## Quick start
 
+```bash
+  docker-compose up
 ```
-docker-compose up
+
+If you are running it first time, run the seeder to load the products:
+
+```bash
+  docker compose --profile seeder run seeder
 ```
+
 
 ## Features
 #### Key features on FE:
@@ -72,8 +79,9 @@ In the `/src` you can have find:
 - `Twig` - contains all the twig extensions (we use for locale change)
 
 
-
 ### Requirements
+Here you will find how to instal all the requirements for the app.
+
 1. Install Symfony CLI (macOS):
 
 ```bash
@@ -91,6 +99,8 @@ In the `/src` you can have find:
 ```
 
 ### Starting app for development
+Here you will find how to start the app for development.
+
 1. Install dependencies:
 
 ```bash
@@ -109,13 +119,30 @@ In the `/src` you can have find:
     symfony console doctrine:migrations:migrate
 ```
 
+4. Seed the database:
+
+```bash
+    symfony console doctrine:fixtures:load
+```
+
 4. Start the server:
 
 ```bash
     symfony server:start
 ```
 
+5. Run fixtures seeder if you havent done it before:
+
+```bash
+    php bin/console doctrine:fixtures:load
+```
+
+5. Open the app in your browser on `localhost:8000`
+
+
 #### Good one time commands for development
+Here I am addinf some useful commands for development.
+
 Create a new Symfony app:
 
 ```bash
@@ -146,7 +173,14 @@ when migration is created, run it:
    symfony console doctrine:migrations:migrate
 ```
 
-
 ## Known issues, todos and limitations
 - implement built-in Symfony password hashing
-- refac
+- refactor the templates, for better code structure (javsacript should be moved and merged)
+- registration is simplified, after yoy fill the form, you are automatically logged in without any email validation
+- login token is not refreshed after some time and has short time to live
+- there is no email sending, so no password reset is possible
+- there is no admin panel for managing the products
+- there is no user profile page
+- there is no product management page, products are seeded in the database
+- there is no product image upload only one image present in the public folder
+- we have only one unit test as an example
