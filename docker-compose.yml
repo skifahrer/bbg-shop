@@ -1,7 +1,8 @@
 services:
   php:
-    image: dunglas/symfony-docker
-    container_name: symfony_app
+    build:
+      context: .
+      target: dev
     ports:
       - "8000:8000"
     volumes:

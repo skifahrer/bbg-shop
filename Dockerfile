@@ -1,66 +1,62 @@
-# Base stage for PHP dependencies
-FROM bitnami/laravel:10.3.3 AS php-base
+# Base stage
+FROM dunglas/frankenphp:1-php8.3 AS app
 
 WORKDIR /app
 
-COPY composer.json composer.lock ./
-RUN composer install --no-interaction --no-plugins --no-scripts --prefer-dist
-
-# Node.js stage for frontend build
-FROM node:16 AS node-builder
-
-WORKDIR /app
-
-COPY package.json package-lock.json ./
-RUN npm ci
-
-COPY . .
-RUN npm run build
+# Install additional PHP extensions and Composer
+RUN install-php-extensions \
+    ctype \
+    iconv \
+    intl \
+    pdo_pgsql \
+    && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 # Development stage
-FROM php-base AS dev
+FROM app AS app_dev
 
-COPY --from=node-builder --chown=bitnami:bitnami /app/node_modules ./node_modules
-COPY --chown=bitnami:bitnami . .
+# Install Symfony CLI
+RUN curl -1sLf 'https://dl.cloudsmith.io/public/symfony/stable/setup.deb.sh' | bash && \
+    apt-get install -y symfony-cli
 
-# Set up storage and bootstrap cache directories
-RUN mkdir -p storage/framework/sessions storage/framework/views storage/framework/cache \
-    && mkdir -p bootstrap/cache \
-    && chown -R bitnami:bitnami storage bootstrap/cache \
-    && chmod -R 775 storage bootstrap/cache
+COPY composer.* symfony.* ./
 
-# Run post-install scripts
-RUN composer run-script post-autoload-dump \
-    && composer run-script post-update-cmd
+RUN composer install --no-interaction --no-plugins --no-scripts --prefer-dist
 
-USER bitnami
+COPY . .
+
+RUN set -eux; \
+    mkdir -p var/cache var/log; \
+    composer run-script post-install-cmd; \
+    chmod +x bin/console; \
+    bin/console doctrine:migrations:migrate --no-interaction; \
+    chmod -R 777 var/cache var/log
 
 EXPOSE 8000
 
-ENTRYPOINT php artisan migrate && php artisan serve --host=0.0.0.0 --port=8000
+CMD ["symfony", "serve", "--no-tls", "--allow-http", "--port=8000"]
 
 # Production stage
-FROM php-base AS prod
+FROM app AS app_prod
 
-COPY --chown=bitnami:bitnami . .
-COPY --from=node-builder --chown=bitnami:bitnami /app/public/build /app/public/build
+COPY composer.* symfony.* ./
 
-# Install dependencies first without --no-dev
 RUN composer install --no-interaction --no-plugins --no-scripts --prefer-dist
 
-# Copy and set up PHP-FPM configuration
-COPY --chown=bitnami:bitnami php-fpm.conf /opt/bitnami/etc/php-fpm.conf
-RUN chmod 644 /opt/bitnami/etc/php-fpm.conf
+COPY . .
 
-# Run Laravel optimization commands AFTER setting permissions
-USER root
+RUN set -eux; \
+    composer install --no-dev --optimize-autoloader; \
+    composer dump-env prod; \
+    composer run-script post-install-cmd; \
+    chmod +x bin/console; \
+    bin/console cache:clear --no-warmup; \
+    bin/console cache:warmup; \
+    bin/console doctrine:migrations:migrate --no-interaction; \
+    composer dump-autoload --classmap-authoritative --no-dev; \
+    chown -R 1000:1000 var
 
-# Now install without dev dependencies for production
-RUN rm -rf vendor \
-    && composer install --no-interaction --no-plugins --no-scripts --prefer-dist --no-dev --optimize-autoloader
+USER 1000:1000
 
-USER bitnami
+EXPOSE 80
 
-EXPOSE 9000
-
-ENTRYPOINT ["sh", "-c", "php artisan migrate --force && php artisan config:cache && exec php-fpm -F --fpm-config /opt/bitnami/etc/php-fpm.conf"]
+CMD ["frankenphp", "run", "--config", "/etc/caddy/Caddyfile"]
