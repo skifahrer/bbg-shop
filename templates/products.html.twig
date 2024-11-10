@@ -204,8 +204,8 @@
                 const productCard = document.createElement('div');
                 productCard.classList.add('col-md-6', 'col-lg-3', 'mb-4');
 
-                const titleKey = `title_${currentLocale}`; // Updated to match API response format
-                let productTitle = product[titleKey] || product.title_en || 'Title not available';
+                const titleKey = `title${currentLocale.charAt(0).toUpperCase() + currentLocale.slice(1)}`; // camelCase format
+                let productTitle = product[titleKey] || product.titleEn || 'Title not available';
 
                 productCard.innerHTML = `
                     <div class="product-card cursor-pointer" data-product-id="${product.id}">
