@@ -1,0 +1,57 @@
+name: Lint and Validate
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  lint:
+    name: Lint and Validate
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, xml, ctype, iconv, intl, pdo, pdo_mysql, dom, filter, json, hash
+          coverage: none
+          tools: composer:v2, php-cs-fixer, phpstan
+
+      - name: Validate composer.json and composer.lock
+        run: composer validate --strict
+
+      - name: Cache Composer packages
+        id: composer-cache
+        uses: actions/cache@v3
+        with:
+          path: vendor
+          key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-php-
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress
+
+      - name: Check PHP syntax
+        run: |
+          find src tests -name "*.php" -print0 | xargs -0 -n1 php -l
+
+      - name: Run PHP CS Fixer
+        run: |
+          php-cs-fixer fix src --dry-run --diff --using-cache=no --rules=@Symfony
+
+      - name: Run PHPStan
+        run: |
+          composer require --dev phpstan/phpstan
+          vendor/bin/phpstan analyse src tests --level=5
+
+      - name: Validate Symfony configuration
+        run: |
+          php bin/console lint:yaml config
+          php bin/console lint:twig templates
+          php bin/console doctrine:schema:validate --skip-sync
