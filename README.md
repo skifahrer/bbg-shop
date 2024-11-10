@@ -22,7 +22,7 @@ You can access the app on [`localhost`](http://localhost) or [`localhost:8000`](
 The frontend is built using pure JavaScript, HTML, CSS, and Symfony Twig templates, which facilitates better translation management. The frontend communicates with the backend via API. The backend is built with Symfony and the API Platform extension, using Doctrine ORM for database communication. The database consists of a simple relational structure with six tables.
 
 Here is a simplified example of a flow diagram of the application:
-![Flow Diagram](/public/images/diagram.png)
+![Flow Diagram](/public/images/diagram.svg)
 
 ### Key Features on Frontend:
 - User registration
